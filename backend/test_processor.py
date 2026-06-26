@@ -9,7 +9,7 @@ for user in users:
 
 # Тест 2: Получить пользователя по telegram_id
 print("\n=== Тест 2: Поиск по telegram_id ===")
-user = processor.get_user_by_telegram_id(222222222)  # Замени на реальный ID
+user = processor.get_user_by_telegram_id(6816631278)  # Замени на реальный ID
 if user:
     print(f"Найден: {user['name']}")
 else:

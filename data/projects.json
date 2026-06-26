@@ -1,3 +1,40 @@
 {
-  "projects": []
+  "projects": [
+    {
+      "name": "Тестовый проект",
+      "description": "Описание тестового проекта",
+      "client_name": "Тестовый клиент",
+      "total_budget": 50000,
+      "deadline": "2024-12-31",
+      "notes": "Тестовые примечания",
+      "status": "in_progress",
+      "created_by": "u_004",
+      "id": "p_001",
+      "created_at": "2026-06-26T22:18:20.858360"
+    },
+    {
+      "name": "Тестовый проект",
+      "description": "Описание тестового проекта",
+      "client_name": "Тестовый клиент",
+      "total_budget": 50000,
+      "deadline": "2024-12-31",
+      "notes": "Тестовые примечания",
+      "status": "in_progress",
+      "created_by": "u_004",
+      "id": "p_002",
+      "created_at": "2026-06-26T22:18:43.306871"
+    },
+    {
+      "name": "Тестовый проект",
+      "description": "Описание тестового проекта",
+      "client_name": "Тестовый клиент",
+      "total_budget": 50000,
+      "deadline": "2024-12-31",
+      "notes": "Тестовые примечания",
+      "status": "in_progress",
+      "created_by": "u_004",
+      "id": "p_003",
+      "created_at": "2026-06-26T22:19:21.358712"
+    }
+  ]
 }

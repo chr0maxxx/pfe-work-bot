@@ -1,3 +1,40 @@
 {
-  "tasks": []
+  "tasks": [
+    {
+      "project_id": "p_001",
+      "title": "Тестовая задача",
+      "cost": 5000,
+      "assignee_id": "u_002",
+      "created_by": "u_002",
+      "id": "t_001",
+      "created_at": "2026-06-26T22:18:20.860839",
+      "status": "done",
+      "column": "done",
+      "completed_at": "2026-06-26T22:18:20.862342"
+    },
+    {
+      "project_id": "p_002",
+      "title": "Тестовая задача",
+      "cost": 5000,
+      "assignee_id": "u_002",
+      "created_by": "u_002",
+      "id": "t_002",
+      "created_at": "2026-06-26T22:18:43.309385",
+      "status": "done",
+      "column": "done",
+      "completed_at": "2026-06-26T22:18:43.311397"
+    },
+    {
+      "project_id": "p_003",
+      "title": "Тестовая задача",
+      "cost": 5000,
+      "assignee_id": "u_002",
+      "created_by": "u_002",
+      "id": "t_003",
+      "created_at": "2026-06-26T22:19:21.361355",
+      "status": "done",
+      "column": "done",
+      "completed_at": "2026-06-26T22:19:21.363356"
+    }
+  ]
 }

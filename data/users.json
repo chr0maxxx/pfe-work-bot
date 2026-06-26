@@ -1,0 +1,32 @@
+{
+  "users": [
+    {
+      "id": "u_001",
+      "telegram_id": 8232255936,
+      "name": "Макс (Админ)",
+      "role": "admin",
+      "can_impersonate": true
+    },
+    {
+      "id": "u_002",
+      "telegram_id": 6816631278,
+      "name": "Макс (Рабочий)",
+      "role": "lead_developer",
+      "can_impersonate": false
+    },
+    {
+      "id": "u_003",
+      "telegram_id": 333333333,
+      "name": "Андрей",
+      "role": "developer",
+      "can_impersonate": false
+    },
+    {
+      "id": "u_004",
+      "telegram_id": 444444444,
+      "name": "Лев",
+      "role": "manager",
+      "can_impersonate": false
+    }
+  ]
+}

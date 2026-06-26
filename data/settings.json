@@ -1,0 +1,34 @@
+{
+  "u_001": {
+    "theme": "dark",
+    "accent_color": "yellow",
+    "font_size": "medium",
+    "notifications": true,
+    "disable_glow": false,
+    "disable_shadows": false
+  },
+  "u_002": {
+    "theme": "dark",
+    "accent_color": "blue",
+    "font_size": "medium",
+    "notifications": true,
+    "disable_glow": false,
+    "disable_shadows": false
+  },
+  "u_003": {
+    "theme": "light",
+    "accent_color": "pink",
+    "font_size": "medium",
+    "notifications": false,
+    "disable_glow": true,
+    "disable_shadows": true
+  },
+  "u_004": {
+    "theme": "dark",
+    "accent_color": "green",
+    "font_size": "medium",
+    "notifications": true,
+    "disable_glow": false,
+    "disable_shadows": false
+  }
+}

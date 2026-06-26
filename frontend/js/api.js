@@ -133,6 +133,10 @@ class API {
     return this.post(`/api/tasks/${taskId}/complete`);
   }
 
+  async deleteTask(taskId) {
+    return this.request(`/api/tasks/${taskId}`, { method: "DELETE" });
+  }
+
   async getFinances() {
     return this.get("/api/finances");
   }

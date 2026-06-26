@@ -323,9 +323,15 @@ async def update_task(task_id: str, request: dict, session_id: str = None):
     if not user:
         return {"error": "Invalid session"}
     
+    # Проверяем права: lead_developer, admin, или исполнитель (только свои задачи)
     old_task = processor.get_task_by_id(task_id)
     if not old_task:
         return {"error": "Task not found"}
+    
+    # Если пользователь не lead_developer и не admin, он может редактировать только свои задачи
+    if user["role"] not in ["lead_developer", "admin"]:
+        if old_task["assignee_id"] != user["id"]:
+            return {"error": "Access denied"}
     
     success = processor.update_task(task_id, request)
     if not success:
@@ -354,14 +360,48 @@ async def complete_task(task_id: str, session_id: str = None):
     if not task:
         return {"error": "Task not found"}
     
-    if task["assignee_id"] != user["id"]:
-        return {"error": "Only assignee can complete task"}
+    # Проверяем права: исполнитель ИЛИ админ
+    if task["assignee_id"] != user["id"] and user["role"] != "admin":
+        return {"error": "Only assignee or admin can complete task"}
     
     success = processor.complete_task(task_id)
     if not success:
         return {"error": "Failed to complete task"}
     
     processor.log_action(user["id"], "COMPLETED_TASK", task_id, f"project={task['project_id']}")
+    
+    return {"success": True}
+
+
+@app.delete("/api/tasks/{task_id}")
+async def delete_task(task_id: str, session_id: str = None):
+    """Удалить задачу (только для lead_developer и admin)"""
+    if not session_id:
+        return {"error": "Not authenticated"}
+    
+    user = auth.get_user_from_session(session_id)
+    if not user:
+        return {"error": "Invalid session"}
+    
+    if user["role"] not in ["lead_developer", "admin"]:
+        return {"error": "Access denied"}
+    
+    task = processor.get_task_by_id(task_id)
+    if not task:
+        return {"error": "Task not found"}
+    
+    # Удаляем задачу
+    success = processor.delete_task(task_id)
+    if not success:
+        return {"error": "Failed to delete task"}
+    
+    # Пересчитываем доли
+    calculator.update_developer_shares(task["project_id"])
+    
+    processor.log_action(
+        user["id"], "DELETED_TASK", task_id,
+        f"project={task['project_id']} title={task['title']}"
+    )
     
     return {"success": True}
 

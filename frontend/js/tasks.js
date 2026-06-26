@@ -427,8 +427,8 @@ async function reopenTask(taskId) {
 
   try {
     const response = await api.updateTask(taskId, {
-      status: "pending",
-      column: "backlog",
+      status: "in_progress",
+      column: "current", // ← Изменили с 'backlog' на 'current'
       completed_at: null,
     });
 
@@ -469,96 +469,149 @@ async function deleteTask(taskId) {
 // ===== МОДАЛКИ =====
 
 function showCreateTaskModal() {
-  // Считаем оставшуюся сумму
-  const tasksSum = allTasks.reduce((sum, t) => sum + t.cost, 0);
+  // Создаём список проектов
+  const projectsOptions = allProjects
+    .map(
+      (p) => `
+        <option value="${p.id}" ${p.id === currentProjectId ? "selected" : ""}>
+            ${p.name}
+        </option>
+    `,
+    )
+    .join("");
 
-  api.getProject(currentProjectId).then((projectData) => {
-    const fractions = projectData.fractions;
-    const remaining = fractions.developers_pool - tasksSum;
-
-    const modal = document.createElement("div");
-    modal.className = "modal-overlay";
-    modal.innerHTML = `
-            <div class="modal">
-                <div class="modal-header">
-                    <div class="modal-title">Создать задачу</div>
-                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+  const modal = document.createElement("div");
+  modal.className = "modal-overlay";
+  modal.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Создать задачу</div>
+                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Проект</label>
+                    <select id="task-project" class="form-select">
+                        ${projectsOptions}
+                    </select>
                 </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Название задачи</label>
-                        <input type="text" id="task-title" class="form-input" placeholder="Например: Разработать дизайн">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Стоимость (₽)</label>
-                        <input type="number" id="task-cost" class="form-input" placeholder="5000" min="0" max="${remaining}">
-                        <div class="form-hint">
-                            Осталось распределить: <strong id="remaining-amount">${remaining.toLocaleString("ru-RU")}₽</strong>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Исполнитель</label>
-                        <select id="task-assignee" class="form-select">
-                            <option value="u_002">Максим</option>
-                            <option value="u_003">Андрей</option>
-                        </select>
+                <div class="form-group">
+                    <label class="form-label">Название задачи</label>
+                    <input type="text" id="task-title" class="form-input" placeholder="Например: Разработать дизайн">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Стоимость (₽)</label>
+                    <input type="number" id="task-cost" class="form-input" placeholder="5000" min="0">
+                    <div class="form-hint">
+                        Доступно: <strong id="remaining-amount">загрузится...</strong>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Отмена</button>
-                    <button class="btn btn-primary" id="btn-submit-task">Создать</button>
+                <div class="form-group">
+                    <label class="form-label">Исполнитель</label>
+                    <select id="task-assignee" class="form-select">
+                        <option value="u_002">Максим</option>
+                        <option value="u_003">Андрей</option>
+                    </select>
                 </div>
             </div>
-        `;
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Отмена</button>
+                <button class="btn btn-primary" id="btn-submit-task">Создать</button>
+            </div>
+        </div>
+    `;
 
-    document.body.appendChild(modal);
+  document.body.appendChild(modal);
 
-    // Обработчик создания
-    document
-      .getElementById("btn-submit-task")
-      .addEventListener("click", async () => {
-        const title = document.getElementById("task-title").value.trim();
-        const cost = parseInt(document.getElementById("task-cost").value);
-        const assigneeId = document.getElementById("task-assignee").value;
+  // Функция обновления доступной суммы
+  async function updateRemainingAmount() {
+    const projectId = document.getElementById("task-project").value;
+    const projectData = await api.getProject(projectId);
+    const fractions = projectData.fractions;
 
-        if (!title) {
-          alert("Введите название задачи");
-          return;
-        }
+    // Загружаем задачи для этого проекта
+    const tasksData = await api.getTasks(projectId);
+    const tasks = tasksData.tasks || [];
+    const tasksSum = tasks.reduce((sum, t) => sum + t.cost, 0);
+    const remaining = fractions.developers_pool - tasksSum;
 
-        if (!cost || cost <= 0) {
-          alert("Введите корректную стоимость");
-          return;
-        }
+    document.getElementById("remaining-amount").textContent =
+      `${remaining.toLocaleString("ru-RU")}₽`;
+    document.getElementById("task-cost").max = remaining;
+  }
 
-        if (cost > remaining) {
-          alert(
-            `Превышена сумма задач! Доступно: ${remaining.toLocaleString("ru-RU")}₽`,
-          );
-          return;
-        }
+  // Обновляем при загрузке
+  updateRemainingAmount();
 
-        try {
-          const response = await api.createTask({
-            project_id: currentProjectId,
-            title: title,
-            cost: cost,
-            assignee_id: assigneeId,
-          });
+  // Обновляем при изменении проекта
+  document
+    .getElementById("task-project")
+    .addEventListener("change", updateRemainingAmount);
 
-          if (response.success) {
-            console.log("Task created:", response.task_id);
-            modal.remove();
+  // Обработчик создания
+  document
+    .getElementById("btn-submit-task")
+    .addEventListener("click", async () => {
+      const projectId = document.getElementById("task-project").value;
+      const title = document.getElementById("task-title").value.trim();
+      const cost = parseInt(document.getElementById("task-cost").value);
+      const assigneeId = document.getElementById("task-assignee").value;
+
+      if (!title) {
+        alert("Введите название задачи");
+        return;
+      }
+
+      if (!cost || cost <= 0) {
+        alert("Введите корректную стоимость");
+        return;
+      }
+
+      // Проверяем лимит
+      const projectData = await api.getProject(projectId);
+      const fractions = projectData.fractions;
+      const tasksData = await api.getTasks(projectId);
+      const tasks = tasksData.tasks || [];
+      const tasksSum = tasks.reduce((sum, t) => sum + t.cost, 0);
+      const remaining = fractions.developers_pool - tasksSum;
+
+      if (cost > remaining) {
+        alert(
+          `Превышена сумма задач! Доступно: ${remaining.toLocaleString("ru-RU")}₽`,
+        );
+        return;
+      }
+
+      try {
+        const response = await api.createTask({
+          project_id: projectId,
+          title: title,
+          cost: cost,
+          assignee_id: assigneeId,
+        });
+
+        if (response.success) {
+          console.log("Task created:", response.task_id);
+          modal.remove();
+
+          // Если создали задачу для текущего проекта — перезагружаем
+          if (projectId === currentProjectId) {
             await loadTasksForProject(currentProjectId);
           } else {
-            alert("Ошибка: " + (response.error || "Не удалось создать задачу"));
+            // Иначе просто показываем уведомление
+            alert(
+              "Задача создана для проекта: " +
+                allProjects.find((p) => p.id === projectId).name,
+            );
           }
-        } catch (error) {
-          console.error("Error creating task:", error);
-          alert("Ошибка: " + error.message);
+        } else {
+          alert("Ошибка: " + (response.error || "Не удалось создать задачу"));
         }
-      });
-  });
+      } catch (error) {
+        console.error("Error creating task:", error);
+        alert("Ошибка: " + error.message);
+      }
+    });
 }
 
 function showEditTaskModal(taskId) {

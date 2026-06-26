@@ -24,6 +24,8 @@ async function loadDebugScreen() {
                         <option value="PAYOUT">Выплаты</option>
                         <option value="SESSION">Сессии</option>
                         <option value="UNAUTHORIZED">Неавторизованные</option>
+                        <option value="SETTINGS">Настройки</option>
+                        <option value="REQUISITES">Реквизиты</option>
                     </select>
                     <button class="btn btn-secondary" id="btn-refresh-logs">🔄 Обновить</button>
                     <button class="btn btn-danger" id="btn-clear-logs">🗑️ Очистить</button>
@@ -146,6 +148,12 @@ function renderLogEntry(log) {
   if (action.includes("CREATED")) {
     logClass = "log-created";
     icon = "➕";
+  } else if (action.includes("UPDATED_SETTINGS")) {
+    logClass = "log-settings";
+    icon = "⚙️";
+  } else if (action.includes("UPDATED_REQUISITES")) {
+    logClass = "log-requisites";
+    icon = "💳";
   } else if (action.includes("UPDATED")) {
     logClass = "log-updated";
     icon = "✏️";
@@ -167,6 +175,9 @@ function renderLogEntry(log) {
   } else if (action.includes("ERROR")) {
     logClass = "log-error";
     icon = "❌";
+  } else if (action.includes("CLEARED_LOGS")) {
+    logClass = "log-cleared";
+    icon = "🧹";
   }
 
   // Получаем имя пользователя

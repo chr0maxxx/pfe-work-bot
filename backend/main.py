@@ -500,7 +500,27 @@ async def update_settings(request: dict, session_id: str = None):
     if not user:
         return {"error": "Invalid session"}
     
+    # Получаем старые настройки для логирования
+    old_settings = processor.get_settings(user["id"])
+    
     success = processor.update_settings(user["id"], request)
+    
+    if success:
+        # Логируем изменения
+        changes = []
+        for key, value in request.items():
+            old_value = old_settings.get(key)
+            if old_value != value:
+                changes.append(f"{key}={old_value}->{value}")
+        
+        if changes:
+            processor.log_action(
+                user["id"], 
+                "UPDATED_SETTINGS", 
+                f"user={user['id']}",
+                " ".join(changes)
+            )
+    
     return {"success": success}
 
 
@@ -529,7 +549,27 @@ async def update_requisites(request: dict, session_id: str = None):
     if not user:
         return {"error": "Invalid session"}
     
+    # Получаем старые реквизиты для логирования
+    old_requisites = processor.get_requisites(user["id"])
+    
     success = processor.update_requisites(user["id"], request)
+    
+    if success:
+        # Логируем изменения
+        changes = []
+        for key, value in request.items():
+            old_value = old_requisites.get(key)
+            if old_value != value:
+                changes.append(f"{key}={old_value}->{value}")
+        
+        if changes:
+            processor.log_action(
+                user["id"], 
+                "UPDATED_REQUISITES", 
+                f"user={user['id']}",
+                " ".join(changes)
+            )
+    
     return {"success": success}
 
 

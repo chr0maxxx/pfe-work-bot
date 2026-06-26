@@ -91,18 +91,31 @@ async function loadSettingsScreen() {
         const response = await api.updateSettings({ accent_color: newColor });
 
         if (response.success) {
-          // Применяем новый цвет
-          document.body.className = document.body.className.replace(
-            /accent-\w+/,
-            `accent-${newColor}`,
-          );
-          alert("Цвет изменён!");
+          // Правильно обновляем классы body
+          const body = document.body;
+          const currentClasses = body.className.split(" ");
+          const newClasses = currentClasses
+            .filter((cls) => !cls.startsWith("accent-")) // Убираем старый акцент
+            .concat(`accent-${newColor}`); // Добавляем новый
+
+          body.className = newClasses.join(" ");
+
+          // Обновляем глобальные настройки
+          if (currentSettings) {
+            currentSettings.accent_color = newColor;
+          }
+
+          // Убираем alert, используем более мягкое уведомление
+          showNotification("Цвет изменён!", "success");
         } else {
-          alert("Ошибка: " + (response.error || "Не удалось сохранить"));
+          showNotification(
+            "Ошибка: " + (response.error || "Не удалось сохранить"),
+            "error",
+          );
         }
       } catch (error) {
         console.error("Error saving settings:", error);
-        alert("Ошибка: " + error.message);
+        showNotification("Ошибка: " + error.message, "error");
       }
     });
 }

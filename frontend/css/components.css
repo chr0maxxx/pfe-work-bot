@@ -677,6 +677,19 @@
   background: rgba(255, 68, 68, 0.1);
 }
 
+.log-settings {
+  border-left-color: #9b59b6;
+}
+
+.log-requisites {
+  border-left-color: #e67e22;
+}
+
+.log-cleared {
+  border-left-color: var(--text-secondary);
+  background: rgba(128, 128, 128, 0.1);
+}
+
 .log-error {
   border-left-color: var(--error);
   background: rgba(255, 68, 68, 0.1);

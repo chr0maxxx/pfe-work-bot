@@ -231,22 +231,22 @@ async function loadScreenData(screenName) {
 let lastTimestamp = null;
 
 async function startPolling() {
-  console.log("Starting polling...");
+  console.log("Starting polling (every 30 seconds)...");
 
   setInterval(async () => {
     try {
       const response = await api.getUpdates(lastTimestamp);
 
       if (response.hasUpdates) {
-        console.log("Updates received, reloading data...");
-        await loadUserData();
+        console.log("Updates received, reloading screen...");
+        // Не вызываем loadUserData() — экономим ресурсы
         await loadScreenData(currentScreen);
         lastTimestamp = response.newTimestamp;
       }
     } catch (error) {
       console.error("Polling error:", error);
     }
-  }, 5000);
+  }, 30000); // 30 секунд вместо 5
 }
 
 // ===== УТИЛИТЫ =====

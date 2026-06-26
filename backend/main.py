@@ -53,12 +53,12 @@ app.add_middleware(
 )
 
 # Middleware для логирования запросов
-@app.middleware("http")
-async def log_requests(request, call_next):
-    logger.info(f"REQUEST: {request.method} {request.url}")
-    response = await call_next(request)
-    logger.info(f"RESPONSE: {response.status_code}")
-    return response
+# @app.middleware("http")
+# async def log_requests(request, call_next):
+#     logger.info(f"REQUEST: {request.method} {request.url}")
+#     response = await call_next(request)
+#     logger.info(f"RESPONSE: {response.status_code}")
+#     return response
 
 # Статические файлы (фронтенд)
 frontend_path = os.path.join(os.path.dirname(__file__), '..', 'frontend')

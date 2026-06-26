@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebStudio Manager</title>
+
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.8/index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.css">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="frontend/css/styles.css">
+</head>
+
+<body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-container">
+            <h1>🚀 WebStudio</h1>
+            <p>Система управления веб-студией</p>
+            <div class="user-select">
+                <div class="user-card" onclick="login('max')">
+                    <div class="avatar" style="background: linear-gradient(135deg, #4a90e2, #357abd)">М</div>
+                    <div class="user-info">
+                        <div class="user-name">Максим</div>
+                        <div class="user-role">Lead Developer</div>
+                    </div>
+                </div>
+                <div class="user-card" onclick="login('andrey')">
+                    <div class="avatar" style="background: linear-gradient(135deg, #50c878, #3da85f)">А</div>
+                    <div class="user-info">
+                        <div class="user-name">Андрей</div>
+                        <div class="user-role">Developer</div>
+                    </div>
+                </div>
+                <div class="user-card" onclick="login('lev')">
+                    <div class="avatar" style="background: linear-gradient(135deg, #f5a623, #e0941a)">Л</div>
+                    <div class="user-info">
+                        <div class="user-name">Лев</div>
+                        <div class="user-role">Manager</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App -->
+    <div class="app" id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="avatar" id="headerAvatar">М</div>
+                <div class="user-details">
+                    <div class="name" id="headerName">Максим</div>
+                    <div class="role" id="headerRole">Lead Developer</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn-logout" onclick="logout()">Выйти</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div class="page active" id="pageDashboard">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Активные задачи</h2>
+                        <button class="btn btn-secondary btn-sm" onclick="showHistory()">История</button>
+                    </div>
+                    <div class="task-list" id="activeTasksList"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Мои заказы</h2>
+                    </div>
+                    <div class="project-progress" id="projectProgress"></div>
+                </div>
+            </div>
+
+            <!-- Tasks Page (Kanban) -->
+            <div class="page" id="pageTasks">
+                <div class="kanban-controls">
+                    <select id="projectFilter" onchange="filterKanban()">
+                        <option value="all">Все проекты</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="openCreateTaskModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Создать задачу
+                    </button>
+                </div>
+                <div class="kanban-board">
+                    <div class="kanban-column" id="colBacklog" ondragover="handleDragOver(event)"
+                        ondrop="handleDrop(event, 'backlog')" ondragleave="handleDragLeave(event)">
+                        <div class="kanban-column-header">
+                            <span class="kanban-column-title">Предстоящие</span>
+                            <span class="kanban-column-count" id="countBacklog">0</span>
+                        </div>
+                        <div class="kanban-cards" id="cardsBacklog"></div>
+                    </div>
+                    <div class="kanban-column" id="colProgress" ondragover="handleDragOver(event)"
+                        ondrop="handleDrop(event, 'progress')" ondragleave="handleDragLeave(event)">
+                        <div class="kanban-column-header">
+                            <span class="kanban-column-title">Текущие</span>
+                            <span class="kanban-column-count" id="countProgress">0</span>
+                        </div>
+                        <div class="kanban-cards" id="cardsProgress"></div>
+                    </div>
+                    <div class="kanban-column" id="colDone" ondragover="handleDragOver(event)"
+                        ondrop="handleDrop(event, 'done')" ondragleave="handleDragLeave(event)">
+                        <div class="kanban-column-header">
+                            <span class="kanban-column-title">Готово</span>
+                            <span class="kanban-column-count" id="countDone">0</span>
+                        </div>
+                        <div class="kanban-cards" id="cardsDone"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finance Page -->
+            <div class="page" id="pageFinance">
+                <div id="financeContent"></div>
+            </div>
+
+            <!-- Settings Page -->
+            <div class="page" id="pageSettings">
+                <div class="card">
+                    <div class="settings-section">
+                        <h3>Внешний вид</h3>
+                        <div class="settings-group">
+                            <div class="setting-row">
+                                <label>Тема</label>
+                                <select class="setting-select" id="themeSelect" onchange="changeTheme(this.value)">
+                                    <option value="dark">Тёмная</option>
+                                    <option value="light">Светлая</option>
+                                </select>
+                            </div>
+                            <div class="setting-row">
+                                <label>Акцентный цвет</label>
+                                <div class="color-options">
+                                    <div class="color-option active" style="background: #4a90e2"
+                                        onclick="changeAccent('#4a90e2', this)"></div>
+                                    <div class="color-option" style="background: #50c878"
+                                        onclick="changeAccent('#50c878', this)"></div>
+                                    <div class="color-option" style="background: #e74c3c"
+                                        onclick="changeAccent('#e74c3c', this)"></div>
+                                    <div class="color-option" style="background: #f5a623"
+                                        onclick="changeAccent('#f5a623', this)"></div>
+                                    <div class="color-option" style="background: #9b59b6"
+                                        onclick="changeAccent('#9b59b6', this)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="settings-section">
+                        <h3>Уведомления</h3>
+                        <div class="settings-group">
+                            <div class="setting-row">
+                                <label>Уведомления о новых задачах</label>
+                                <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+                            </div>
+                            <div class="setting-row">
+                                <label>Напоминания о дедлайнах</label>
+                                <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+                            </div>
+                            <div class="setting-row">
+                                <label>Еженедельные отчёты</label>
+                                <div class="toggle" onclick="this.classList.toggle('active')"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="settings-section">
+                        <h3>Профиль</h3>
+                        <div class="profile-form">
+                            <div class="form-group">
+                                <label>Имя</label>
+                                <input type="text" id="profileName" value="Максим">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="profileEmail" value="max@studio.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Telegram ID</label>
+                                <input type="text" id="profileTelegram" value="123456789">
+                            </div>
+                            <button class="btn btn-primary" onclick="saveProfile()">Сохранить</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="teamSection" style="display:none">
+                    <div class="settings-section">
+                        <h3>Команда</h3>
+                        <div class="team-list" id="teamList"></div>
+                        <button class="btn btn-primary btn-sm" style="margin-top:12px"
+                            onclick="alert('Функция добавления участника')">+ Добавить участника</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Page -->
+            <div class="page" id="pageHistory">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">История задач</h2>
+                        <button class="btn btn-secondary btn-sm" onclick="navigateTo('dashboard')">← Назад</button>
+                    </div>
+                    <div class="task-list" id="historyTasksList"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navbar -->
+        <nav class="navbar">
+            <button class="nav-item active" onclick="navigateTo('dashboard')" data-page="dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Главная
+            </button>
+            <button class="nav-item" onclick="navigateTo('tasks')" data-page="tasks">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 11l3 3L22 4"></path>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+                Задачи
+            </button>
+            <button class="nav-item" onclick="navigateTo('finance')" data-page="finance">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                Финансы
+            </button>
+            <button class="nav-item" onclick="navigateTo('settings')" data-page="settings">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68 1.65 1.65 0 0 0 9 3.17V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                </svg>
+                Настройки
+            </button>
+        </nav>
+    </div>
+
+    <!-- Modal: Create Task -->
+    <div class="modal-overlay" id="modalCreateTask">
+        <div class="modal">
+            <h2>Создать новую задачу</h2>
+            <div class="form-group">
+                <label>Название</label>
+                <input type="text" id="newTaskName" placeholder="Введите название задачи">
+            </div>
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea id="newTaskDesc" placeholder="Описание задачи"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Проект</label>
+                <select id="newTaskProject"></select>
+            </div>
+            <div class="form-group">
+                <label>Стоимость (₽)</label>
+                <input type="number" id="newTaskCost" placeholder="5000">
+            </div>
+            <div class="form-group">
+                <label>Дедлайн</label>
+                <input type="date" id="newTaskDeadline">
+            </div>
+            <div class="form-group">
+                <label>Исполнитель</label>
+                <select id="newTaskAssignee">
+                    <option value="max">Максим</option>
+                    <option value="andrey">Андрей</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('modalCreateTask')">Отмена</button>
+                <button class="btn btn-primary" onclick="createTask()">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Task Detail -->
+    <div class="modal-overlay" id="modalTaskDetail">
+        <div class="modal">
+            <div class="task-detail-header">
+                <h2 id="detailTaskName">Название задачи</h2>
+            </div>
+            <div class="task-detail-info">
+                <div class="detail-field">
+                    <div class="field-label">Проект</div>
+                    <div class="field-value" id="detailProject">—</div>
+                </div>
+                <div class="detail-field">
+                    <div class="field-label">Исполнитель</div>
+                    <div class="field-value" id="detailAssignee">—</div>
+                </div>
+                <div class="detail-field">
+                    <div class="field-label">Стоимость</div>
+                    <div class="field-value" id="detailCost" style="color: var(--success)">—</div>
+                </div>
+                <div class="detail-field">
+                    <div class="field-label">Дедлайн</div>
+                    <div class="field-value" id="detailDeadline">—</div>
+                </div>
+                <div class="detail-field">
+                    <div class="field-label">Статус</div>
+                    <div class="field-value" id="detailStatus">—</div>
+                </div>
+            </div>
+            <div class="task-description" id="detailDescription">Описание задачи</div>
+            <div class="modal-actions">
+                <button class="btn btn-danger btn-sm" onclick="deleteTask()">Удалить</button>
+                <button class="btn btn-secondary" onclick="closeModal('modalTaskDetail')">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Income (for Lev) -->
+    <div class="modal-overlay" id="modalAddIncome">
+        <div class="modal">
+            <h2>Добавить поступление</h2>
+            <div class="form-group">
+                <label>Проект</label>
+                <select id="incomeProject"></select>
+            </div>
+            <div class="form-group">
+                <label>Сумма (₽)</label>
+                <input type="number" id="incomeAmount" placeholder="100000">
+            </div>
+            <div class="form-group">
+                <label>Дата</label>
+                <input type="date" id="incomeDate">
+            </div>
+            <div class="form-group">
+                <label>Комментарий</label>
+                <input type="text" id="incomeComment" placeholder="Оплата от клиента">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('modalAddIncome')">Отмена</button>
+                <button class="btn btn-primary" onclick="addIncome()">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Expense (for Lev) -->
+    <div class="modal-overlay" id="modalAddExpense">
+        <div class="modal">
+            <h2>Добавить расход</h2>
+            <div class="form-group">
+                <label>Категория</label>
+                <select id="expenseCategory">
+                    <option value="hosting">Хостинг</option>
+                    <option value="tools">Инструменты</option>
+                    <option value="salary">Зарплаты</option>
+                    <option value="other">Другое</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Сумма (₽)</label>
+                <input type="number" id="expenseAmount" placeholder="5000">
+            </div>
+            <div class="form-group">
+                <label>Дата</label>
+                <input type="date" id="expenseDate">
+            </div>
+            <div class="form-group">
+                <label>Комментарий</label>
+                <input type="text" id="expenseComment" placeholder="Описание расхода">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('modalAddExpense')">Отмена</button>
+                <button class="btn btn-primary" onclick="addExpense()">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="frontend/js/script.js"></script>
+</body>
+
+</html>

@@ -660,8 +660,12 @@ def get_role_name(role: str) -> str:
 
 async def start_fastapi():
     """Запуск FastAPI сервера"""
-    port = int(os.getenv("PORT", 8080))
+    # Используем порт 80 (стандартный HTTP) или из переменной окружения
+    port = int(os.getenv("PORT", 80))
+    
     logger.info(f"FastAPI port: {port}")
+    logger.info(f"PORT env: {os.getenv('PORT', 'not set')}")
+    
     config = uvicorn.Config(
         app,
         host="0.0.0.0",

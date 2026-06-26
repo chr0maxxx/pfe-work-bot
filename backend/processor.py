@@ -215,6 +215,19 @@ def complete_task(task_id: str) -> bool:
         'column': 'done',
         'completed_at': datetime.now().isoformat()
     })
+    
+def delete_task(task_id: str) -> bool:
+    """Удалить задачу"""
+    data = read_json('tasks.json')
+    tasks = data.get('tasks', [])
+    
+    original_count = len(tasks)
+    tasks = [t for t in tasks if t['id'] != task_id]
+    
+    if len(tasks) == original_count:
+        return False  # Задача не найдена
+    
+    return write_json('tasks.json', {'tasks': tasks})
 
 
 # ============= FRACTIONS =============

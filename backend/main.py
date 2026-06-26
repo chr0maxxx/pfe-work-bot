@@ -618,10 +618,12 @@ def get_role_name(role: str) -> str:
 
 async def start_fastapi():
     """Запуск FastAPI сервера"""
+    port = int(os.getenv("PORT", 8080))
+    logger.info(f"FastAPI port: {port}")
     config = uvicorn.Config(
         app,
         host="0.0.0.0",
-        port=8000,
+        port=port,
         log_level="info"
     )
     server = uvicorn.Server(config)
@@ -642,7 +644,7 @@ async def start_bot():
 async def main():
     """Запуск обоих серверов параллельно"""
     logger.info("Запуск приложения...")
-    logger.info(f"FastAPI: http://0.0.0.0:8000")
+    logger.info(f"FastAPI: http://0.0.0.0:8080")
     logger.info(f"WebApp URL: {WEBAPP_URL}")
     
     # Запускаем оба сервера параллельно

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Инициализация бота и диспетчера
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-domain.com")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://yandex.ru")
 if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN not found in environment variables")
 bot = Bot(token=BOT_TOKEN)

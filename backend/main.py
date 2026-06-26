@@ -54,9 +54,9 @@ app.add_middleware(
 )
 
 # Статические файлы (фронтенд)
-frontend_path = os.path.join(os.path.dirname(__file__), '..', 'frontend')
-if os.path.exists(frontend_path):
-    app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+# frontend_path = os.path.join(os.path.dirname(__file__), '..', 'frontend')
+# if os.path.exists(frontend_path):
+#     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
 
 # ============================================================
@@ -504,16 +504,16 @@ async def get_updates(since: str = None, session_id: str = None):
 
 # ----- ГЛАВНАЯ СТРАНИЦА -----
 
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    """Главная страница"""
-    html_path = os.path.join(frontend_path, 'index.html')
+# @app.get("/", response_class=HTMLResponse)
+# async def root():
+#     """Главная страница"""
+#     html_path = os.path.join(frontend_path, 'index.html')
     
-    if not os.path.exists(html_path):
-        return HTMLResponse(content="<h1>Frontend not found</h1>", status_code=404)
+#     if not os.path.exists(html_path):
+#         return HTMLResponse(content="<h1>Frontend not found</h1>", status_code=404)
     
-    with open(html_path, 'r', encoding='utf-8') as f:
-        return HTMLResponse(content=f.read())
+#     with open(html_path, 'r', encoding='utf-8') as f:
+#         return HTMLResponse(content=f.read())
 
 
 # ============================================================

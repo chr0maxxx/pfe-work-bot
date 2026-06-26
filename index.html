@@ -4,250 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Studio</title>
+    
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #1a1a1a;
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .header {
-            background: #2a2a2a;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            border-bottom: 1px solid #3a3a3a;
-        }
-        
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #4a90e2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        
-        .user-info {
-            flex: 1;
-        }
-        
-        .user-name {
-            font-weight: 600;
-        }
-        
-        .user-role {
-            font-size: 0.85rem;
-            color: #888;
-        }
-        
-        .content {
-            flex: 1;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .loading {
-            text-align: center;
-        }
-        
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #3a3a3a;
-            border-top-color: #4a90e2;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .navbar {
-            background: #2a2a2a;
-            padding: 0.5rem;
-            display: flex;
-            justify-content: space-around;
-            border-top: 1px solid #3a3a3a;
-        }
-        
-        .nav-item {
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .nav-item:hover {
-            background: #3a3a3a;
-        }
-        
-        .nav-item.active {
-            background: #4a90e2;
-        }
-        
-        .error {
-            background: #ff4444;
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem;
-        }
-    </style>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="frontend/css/styles.css">
+    <link rel="stylesheet" href="frontend/css/themes.css">
+    <link rel="stylesheet" href="frontend/css/components.css">
 </head>
-<body>
-    <div class="header">
-        <div class="avatar" id="avatar">?</div>
-        <div class="user-info">
-            <div class="user-name" id="userName">Загрузка...</div>
-            <div class="user-role" id="userRole">...</div>
+<body class="theme-dark accent-blue font-medium">
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="avatar" id="avatar">?</div>
+            <div class="user-info">
+                <div class="user-name" id="userName">Загрузка...</div>
+                <div class="user-role" id="userRole">...</div>
+            </div>
         </div>
-    </div>
-    
-    <div class="content" id="content">
-        <div class="loading">
-            <div class="loading-spinner"></div>
-            <div>Авторизация...</div>
-        </div>
-    </div>
-    
-    <div class="navbar">
-        <div class="nav-item active">Задачи</div>
-        <div class="nav-item">Финансы</div>
-        <div class="nav-item">Настройки</div>
-    </div>
-    
-    <script>
-        // Глобальные переменные
-        let currentUser = null;
-        let currentSettings = null;
         
-        // Инициализация Telegram WebApp
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
-        
-        // Авторизация через Telegram
-        async function authenticate() {
-            try {
-                const initData = tg?.initData || '';
-                
-                const response = await fetch('/api/auth/telegram', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ initData })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Authentication failed');
-                }
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    currentUser = data.user;
-                    currentSettings = data.settings;
-                    
-                    updateUI();
-                    loadContent();
-                }
-            } catch (error) {
-                console.error('Auth error:', error);
-                showError('Ошибка авторизации. Пожалуйста, откройте приложение через Telegram.');
-            }
-        }
-        
-        // Обновление UI
-        function updateUI() {
-            if (!currentUser) return;
-            
-            document.getElementById('userName').textContent = currentUser.name;
-            document.getElementById('userRole').textContent = getRoleName(currentUser.role);
-            document.getElementById('avatar').textContent = currentUser.name.charAt(0).toUpperCase();
-            
-            // Применяем настройки
-            applySettings(currentSettings);
-        }
-        
-        // Применение настроек
-        function applySettings(settings) {
-            if (!settings) return;
-            
-            // Тема
-            if (settings.theme === 'light') {
-                document.body.style.background = '#f5f5f5';
-                document.body.style.color = '#333333';
-            }
-            
-            // Отключение эффектов
-            if (settings.disable_glow) {
-                document.body.classList.add('no-glow');
-            }
-            
-            if (settings.disable_shadows) {
-                document.body.classList.add('no-shadow');
-            }
-        }
-        
-        // Загрузка контента
-        function loadContent() {
-            const content = document.getElementById('content');
-            content.innerHTML = `
-                <div style="text-align: center;">
-                    <h2>Добро пожаловать, ${currentUser.name}!</h2>
-                    <p style="margin-top: 1rem; color: #888;">
-                        Роль: ${getRoleName(currentUser.role)}
-                    </p>
-                    <p style="margin-top: 2rem;">
-                        Веб-интерфейс успешно загружен.
-                    </p>
-                    <p style="margin-top: 1rem; color: #888;">
-                        Следующий шаг: реализация экранов задач, финансов и настроек.
-                    </p>
+        <!-- Content -->
+        <div class="content" id="content">
+            <!-- Tasks Screen -->
+            <div class="screen active" id="screen-tasks">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Загрузка задач...</div>
                 </div>
-            `;
-        }
+            </div>
+            
+            <!-- Finances Screen -->
+            <div class="screen" id="screen-finances">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Загрузка финансов...</div>
+                </div>
+            </div>
+            
+            <!-- Settings Screen -->
+            <div class="screen" id="screen-settings">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Загрузка настроек...</div>
+                </div>
+            </div>
+        </div>
         
-        // Показать ошибку
-        function showError(message) {
-            const content = document.getElementById('content');
-            content.innerHTML = `<div class="error">${message}</div>`;
-        }
-        
-        // Получить название роли
-        function getRoleName(role) {
-            const roles = {
-                'admin': 'Администратор',
-                'lead_developer': 'Ведущий разработчик',
-                'developer': 'Разработчик',
-                'manager': 'Менеджер'
-            };
-            return roles[role] || role;
-        }
-        
-        // Запуск
-        authenticate();
-    </script>
+        <!-- Navbar -->
+        <div class="navbar">
+            <div class="nav-item active" data-screen="tasks">
+                <div class="nav-icon">📋</div>
+                <div>Задачи</div>
+            </div>
+            <div class="nav-item" data-screen="finances">
+                <div class="nav-icon">💰</div>
+                <div>Финансы</div>
+            </div>
+            <div class="nav-item" data-screen="settings">
+                <div class="nav-icon">⚙️</div>
+                <div>Настройки</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="frontend/js/api.js"></script>
+    <script src="frontend/js/tasks.js"></script>
+    <script src="frontend/js/finances.js"></script>
+    <script src="frontend/js/settings.js"></script>
+    <script src="frontend/js/app.js"></script>
 </body>
 </html>

@@ -1,5 +1,3 @@
-// Основная логика приложения
-
 // Глобальные переменные
 let currentUser = null;
 let currentSettings = null;
@@ -10,31 +8,45 @@ const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
   tg.expand();
+  console.log("Telegram WebApp initialized");
+  console.log("initData:", tg.initData ? "present" : "missing");
+} else {
+  console.warn("Telegram WebApp not available");
 }
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
 
 async function init() {
+  console.log("=== INIT START ===");
+
   try {
-    // Авторизация
+    console.log("Step 1: Authenticating...");
     await authenticate();
+    console.log("Step 1: Auth success, user:", currentUser);
 
-    // Загрузка данных
+    console.log("Step 2: Loading user data...");
     await loadUserData();
+    console.log("Step 2: User data loaded");
 
-    // Применение настроек
+    console.log("Step 3: Applying settings...");
     applySettings(currentSettings);
+    console.log("Step 3: Settings applied");
 
-    // Инициализация навигации
+    console.log("Step 4: Initializing navigation...");
     initNavigation();
+    console.log("Step 4: Navigation initialized");
 
-    // Загрузка первого экрана
+    console.log("Step 5: Showing first screen...");
     showScreen("tasks");
+    console.log("Step 5: Screen shown");
 
-    // Запуск polling
+    console.log("Step 6: Starting polling...");
     startPolling();
+    console.log("Step 6: Polling started");
+
+    console.log("=== INIT COMPLETE ===");
   } catch (error) {
-    console.error("Init error:", error);
+    console.error("=== INIT ERROR ===", error);
     showError("Ошибка инициализации: " + error.message);
   }
 }
@@ -42,22 +54,44 @@ async function init() {
 // ===== АВТОРИЗАЦИЯ =====
 
 async function authenticate() {
+  console.log("Authenticating...");
+
   const initData = tg?.initData || "";
+  console.log(
+    "initData:",
+    initData ? "present (length: " + initData.length + ")" : "empty",
+  );
+
+  if (!initData) {
+    throw new Error(
+      "Telegram initData is missing. Please open via Telegram bot.",
+    );
+  }
 
   const response = await api.authTelegram(initData);
+  console.log("Auth response:", response);
 
   if (!response.success) {
-    throw new Error("Authentication failed");
+    throw new Error(response.detail || "Authentication failed");
   }
 
   currentUser = response.user;
   currentSettings = response.settings;
+
+  console.log("Authenticated as:", currentUser.name, "role:", currentUser.role);
 }
 
 // ===== ЗАГРУЗКА ДАННЫХ =====
 
 async function loadUserData() {
+  console.log("Loading user data...");
   const data = await api.getMe();
+  console.log("User data:", data);
+
+  if (data.error) {
+    throw new Error(data.error);
+  }
+
   currentUser = data.user;
   currentSettings = data.settings;
 }
@@ -65,12 +99,19 @@ async function loadUserData() {
 // ===== ПРИМЕНЕНИЕ НАСТРОЕК =====
 
 function applySettings(settings) {
-  if (!settings) return;
+  console.log("Applying settings:", settings);
+
+  if (!settings) {
+    console.warn("No settings to apply");
+    return;
+  }
 
   const body = document.body;
 
-  // Тема
+  // Очищаем все классы
   body.className = "";
+
+  // Тема
   body.classList.add(`theme-${settings.theme || "dark"}`);
 
   // Акцентный цвет
@@ -87,16 +128,39 @@ function applySettings(settings) {
   if (settings.disable_shadows) {
     body.classList.add("no-shadow");
   }
+
+  // Обновляем UI
+  updateUI();
+}
+
+function updateUI() {
+  if (!currentUser) {
+    console.warn("No user to update UI");
+    return;
+  }
+
+  console.log("Updating UI for user:", currentUser.name);
+
+  document.getElementById("userName").textContent = currentUser.name;
+  document.getElementById("userRole").textContent = getRoleName(
+    currentUser.role,
+  );
+  document.getElementById("avatar").textContent = currentUser.name
+    .charAt(0)
+    .toUpperCase();
 }
 
 // ===== НАВИГАЦИЯ =====
 
 function initNavigation() {
+  console.log("Initializing navigation...");
+
   const navItems = document.querySelectorAll(".nav-item");
 
   navItems.forEach((item) => {
     item.addEventListener("click", () => {
       const screen = item.dataset.screen;
+      console.log("Navigation clicked:", screen);
       showScreen(screen);
 
       // Обновляем активный пункт
@@ -107,6 +171,8 @@ function initNavigation() {
 }
 
 function showScreen(screenName) {
+  console.log("Showing screen:", screenName);
+
   currentScreen = screenName;
 
   // Скрываем все экраны
@@ -121,38 +187,43 @@ function showScreen(screenName) {
 
     // Загружаем данные для экрана
     loadScreenData(screenName);
+  } else {
+    console.error("Screen not found:", screenName);
   }
 }
 
 async function loadScreenData(screenName) {
-  switch (screenName) {
-    case "tasks":
-      await loadTasksScreen();
-      break;
-    case "finances":
-      await loadFinancesScreen();
-      break;
-    case "settings":
-      await loadSettingsScreen();
-      break;
+  console.log("Loading screen data:", screenName);
+
+  try {
+    switch (screenName) {
+      case "tasks":
+        if (typeof loadTasksScreen === "function") {
+          await loadTasksScreen();
+        } else {
+          console.error("loadTasksScreen function not defined");
+        }
+        break;
+      case "finances":
+        if (typeof loadFinancesScreen === "function") {
+          await loadFinancesScreen();
+        } else {
+          console.error("loadFinancesScreen function not defined");
+        }
+        break;
+      case "settings":
+        if (typeof loadSettingsScreen === "function") {
+          await loadSettingsScreen();
+        } else {
+          console.error("loadSettingsScreen function not defined");
+        }
+        break;
+      default:
+        console.error("Unknown screen:", screenName);
+    }
+  } catch (error) {
+    console.error("Error loading screen:", screenName, error);
   }
-}
-
-// ===== ЗАГРУЗКА ЭКРАНОВ =====
-
-async function loadTasksScreen() {
-  // Будет реализовано в tasks.js
-  console.log("Loading tasks screen...");
-}
-
-async function loadFinancesScreen() {
-  // Будет реализовано в finances.js
-  console.log("Loading finances screen...");
-}
-
-async function loadSettingsScreen() {
-  // Будет реализовано в settings.js
-  console.log("Loading settings screen...");
 }
 
 // ===== POLLING =====
@@ -160,29 +231,28 @@ async function loadSettingsScreen() {
 let lastTimestamp = null;
 
 async function startPolling() {
+  console.log("Starting polling...");
+
   setInterval(async () => {
     try {
       const response = await api.getUpdates(lastTimestamp);
 
       if (response.hasUpdates) {
-        // Обновляем данные
+        console.log("Updates received, reloading data...");
         await loadUserData();
-
-        // Перезагружаем текущий экран
         await loadScreenData(currentScreen);
-
-        // Обновляем timestamp
         lastTimestamp = response.newTimestamp;
       }
     } catch (error) {
       console.error("Polling error:", error);
     }
-  }, 5000); // каждые 5 секунд
+  }, 5000);
 }
 
 // ===== УТИЛИТЫ =====
 
 function showError(message) {
+  console.error("Showing error:", message);
   const content = document.getElementById("content");
   content.innerHTML = `<div class="error">${message}</div>`;
 }
@@ -197,14 +267,9 @@ function getRoleName(role) {
   return roles[role] || role;
 }
 
-function formatMoney(amount) {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
-
 // ===== ЗАПУСК =====
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM loaded, starting init...");
+  init();
+});

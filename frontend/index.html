@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Studio</title>
-    
+
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/themes.css">
-    <link rel="stylesheet" href="css/components.css">
+
+    <!-- CSS (добавили /static/) -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/themes.css">
+    <link rel="stylesheet" href="/static/css/components.css">
 </head>
+
 <body class="theme-dark accent-blue font-medium">
     <div class="app-container">
         <!-- Header -->
@@ -23,7 +25,7 @@
                 <div class="user-role" id="userRole">...</div>
             </div>
         </div>
-        
+
         <!-- Content -->
         <div class="content" id="content">
             <!-- Tasks Screen -->
@@ -33,7 +35,7 @@
                     <div>Загрузка задач...</div>
                 </div>
             </div>
-            
+
             <!-- Finances Screen -->
             <div class="screen" id="screen-finances">
                 <div class="loading">
@@ -41,7 +43,7 @@
                     <div>Загрузка финансов...</div>
                 </div>
             </div>
-            
+
             <!-- Settings Screen -->
             <div class="screen" id="screen-settings">
                 <div class="loading">
@@ -50,7 +52,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Navbar -->
         <div class="navbar">
             <div class="nav-item active" data-screen="tasks">
@@ -67,12 +69,13 @@
             </div>
         </div>
     </div>
-    
-    <!-- JavaScript -->
-    <script src="js/api.js"></script>
-    <script src="js/tasks.js"></script>
-    <script src="js/finances.js"></script>
-    <script src="js/settings.js"></script>
-    <script src="js/app.js"></script>
+
+    <!-- JavaScript (добавили /static/) -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/tasks.js"></script>
+    <script src="/static/js/finances.js"></script>
+    <script src="/static/js/settings.js"></script>
+    <script src="/static/js/app.js"></script>
 </body>
+
 </html>

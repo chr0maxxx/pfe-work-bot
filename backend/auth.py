@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import json
 import os
+from dotenv import load_dotenv
 import time
 from urllib.parse import parse_qs
 from typing import Optional, Dict
@@ -11,12 +12,10 @@ import processor
 
 
 # ============= КОНФИГУРАЦИЯ =============
-
-# Токен бота (получи у @BotFather)
-BOT_TOKEN = "8335802933:AAEHfT0jTRM-qS8rSLbuxPUT7BKRYxUBWb0"
-
-# Секретный ключ для подписи сессий (можно изменить)
-SESSION_SECRET = "your_super_secret_key_change_this_in_production"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+SESSION_SECRET = os.getenv("SESSION_SECRET", "default_secret_key")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 
 # Время жизни сессии (в секундах) - 24 часа
 SESSION_LIFETIME = 24 * 60 * 60

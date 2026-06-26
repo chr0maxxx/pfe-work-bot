@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import os
+from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import WebAppInfo, InlineKeyboardButton, InlineKeyboardMarkup
@@ -8,18 +10,18 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 import auth
 import processor
 
+load_dotenv()
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Инициализация бота и диспетчера
-BOT_TOKEN = "8335802933:AAEHfT0jTRM-qS8rSLbuxPUT7BKRYxUBWb0"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-domain.com")
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN not found in environment variables")
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
-
-# URL веб-приложения (замени на свой домен)
-WEBAPP_URL = "https://pfetc-chr0maxxx.amvera.io/"
-
 
 # ============= КОМАНДА /START =============
 

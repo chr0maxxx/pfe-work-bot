@@ -1,3 +1,30 @@
 {
-  "finances": []
+  "finances": [
+    {
+      "project_id": "p_004",
+      "client_paid_total": 50000,
+      "payouts": {
+        "u_002": {
+          "total_due": 32000,
+          "paid": 32000,
+          "remaining": 0,
+          "status": "paid"
+        },
+        "u_003": {
+          "total_due": 25000,
+          "paid": 25000,
+          "remaining": 0,
+          "status": "paid"
+        },
+        "u_004": {
+          "total_due": 28000.0,
+          "paid": 28000,
+          "remaining": 0,
+          "status": "paid"
+        }
+      },
+      "id": "fin_001",
+      "last_updated": "2026-06-26T22:21:57.786193"
+    }
+  ]
 }

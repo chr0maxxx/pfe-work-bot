@@ -1,3 +1,17 @@
 {
-  "fractions": []
+  "fractions": [
+    {
+      "project_id": "p_004",
+      "total_budget": 100000,
+      "studio_fund": 15000.0,
+      "manager_share": 28000.0,
+      "developers_pool": 57000.0,
+      "developer_shares": {
+        "u_002": 32000,
+        "u_003": 25000
+      },
+      "id": "f_001",
+      "calculated_at": "2026-06-26T22:21:57.758059"
+    }
+  ]
 }

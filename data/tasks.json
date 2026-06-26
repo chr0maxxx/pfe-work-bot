@@ -35,6 +35,40 @@
       "status": "done",
       "column": "done",
       "completed_at": "2026-06-26T22:19:21.363356"
+    },
+    {
+      "project_id": "p_004",
+      "title": "Дизайн",
+      "cost": 20000,
+      "assignee_id": "u_002",
+      "created_by": "u_002",
+      "id": "t_004",
+      "created_at": "2026-06-26T22:21:57.760073",
+      "status": "done",
+      "column": "done",
+      "completed_at": "2026-06-26T22:21:57.772254"
+    },
+    {
+      "project_id": "p_004",
+      "title": "Бэкенд",
+      "cost": 25000,
+      "assignee_id": "u_003",
+      "created_by": "u_002",
+      "id": "t_005",
+      "created_at": "2026-06-26T22:21:57.762085",
+      "status": "pending",
+      "column": "backlog"
+    },
+    {
+      "project_id": "p_004",
+      "title": "Фронтенд",
+      "cost": 12000,
+      "assignee_id": "u_002",
+      "created_by": "u_002",
+      "id": "t_006",
+      "created_at": "2026-06-26T22:21:57.763589",
+      "status": "pending",
+      "column": "backlog"
     }
   ]
 }

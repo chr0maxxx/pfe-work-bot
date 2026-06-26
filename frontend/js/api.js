@@ -1,44 +1,62 @@
-// API клиент для работы с backend
-
 class API {
   constructor() {
     this.baseUrl = "";
+    // Получаем session_id из localStorage
+    this.sessionId = localStorage.getItem("session_id") || null;
+  }
+
+  // Сохранить session_id
+  setSessionId(sessionId) {
+    this.sessionId = sessionId;
+    localStorage.setItem("session_id", sessionId);
   }
 
   // Базовый метод для запросов
   async request(endpoint, options = {}) {
-    const url = `${this.baseUrl}${endpoint}`;
+    let url = `${this.baseUrl}${endpoint}`;
+
+    // Добавляем session_id как query параметр
+    if (this.sessionId) {
+      const separator = url.includes("?") ? "&" : "?";
+      url += `${separator}session_id=${this.sessionId}`;
+    }
 
     const config = {
       headers: {
         "Content-Type": "application/json",
         ...options.headers,
       },
-      credentials: "include", // Важно для cookies
       ...options,
     };
 
     try {
       const response = await fetch(url, config);
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Request failed");
+      // Проверяем, что ответ — JSON, а не HTML
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error(
+          "Server returned HTML instead of JSON. Backend may not be running.",
+        );
       }
 
-      return await response.json();
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return data;
     } catch (error) {
       console.error("API Error:", error);
       throw error;
     }
   }
 
-  // GET запрос
   async get(endpoint) {
     return this.request(endpoint, { method: "GET" });
   }
 
-  // POST запрос
   async post(endpoint, data) {
     return this.request(endpoint, {
       method: "POST",
@@ -46,7 +64,6 @@ class API {
     });
   }
 
-  // PATCH запрос
   async patch(endpoint, data) {
     return this.request(endpoint, {
       method: "PATCH",
@@ -54,28 +71,34 @@ class API {
     });
   }
 
-  // DELETE запрос
-  async delete(endpoint) {
-    return this.request(endpoint, { method: "DELETE" });
-  }
-
   // ===== AUTH =====
 
   async authTelegram(initData) {
-    return this.post("/api/auth/telegram", { initData });
+    const response = await this.post("/api/auth/telegram", { initData });
+
+    // Сохраняем session_id
+    if (response.success && response.session_id) {
+      this.setSessionId(response.session_id);
+    }
+
+    return response;
   }
 
   async authAdmin(username, password) {
-    return this.post("/api/auth/admin", { username, password });
+    const response = await this.post("/api/auth/admin", { username, password });
+
+    if (response.success && response.session_id) {
+      this.setSessionId(response.session_id);
+    }
+
+    return response;
   }
 
-  // ===== USER =====
+  // ===== Остальные методы (без изменений) =====
 
   async getMe() {
     return this.get("/api/me");
   }
-
-  // ===== PROJECTS =====
 
   async getProjects() {
     return this.get("/api/projects");
@@ -93,8 +116,6 @@ class API {
     return this.patch(`/api/projects/${projectId}`, data);
   }
 
-  // ===== TASKS =====
-
   async getTasks(projectId = null) {
     const params = projectId ? `?project_id=${projectId}` : "";
     return this.get(`/api/tasks${params}`);
@@ -111,8 +132,6 @@ class API {
   async completeTask(taskId) {
     return this.post(`/api/tasks/${taskId}/complete`);
   }
-
-  // ===== FINANCES =====
 
   async getFinances() {
     return this.get("/api/finances");
@@ -133,8 +152,6 @@ class API {
     });
   }
 
-  // ===== SETTINGS =====
-
   async getSettings() {
     return this.get("/api/settings");
   }
@@ -142,8 +159,6 @@ class API {
   async updateSettings(data) {
     return this.patch("/api/settings", data);
   }
-
-  // ===== REQUISITES =====
 
   async getRequisites() {
     return this.get("/api/requisites");
@@ -153,13 +168,10 @@ class API {
     return this.patch("/api/requisites", data);
   }
 
-  // ===== UPDATES (Polling) =====
-
   async getUpdates(since = null) {
-    const params = since ? `?since=${since}` : "";
-    return this.get(`/api/updates${params}`);
+    const params = since ? `&since=${since}` : "";
+    return this.get(`/api/updates?dummy=1${params}`);
   }
 }
 
-// Создаём глобальный экземпляр
 const api = new API();

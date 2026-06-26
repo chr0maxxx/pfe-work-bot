@@ -1,11 +1,108 @@
-// Экран настроек - заглушка
+// Экран настроек
+
 async function loadSettingsScreen() {
-  console.log("Settings screen loading...");
+  console.log("Loading settings screen...");
+
   const content = document.getElementById("screen-settings");
+  const userRole = currentUser?.role;
+
+  let requisitesSection = "";
+
+  // Для админа - возможность редактировать реквизиты всех
+  if (userRole === "admin") {
+    requisitesSection = `
+            <div class="settings-section">
+                <h3>👥 Реквизиты всех участников</h3>
+                <div class="placeholder-message">
+                    Здесь будут реквизиты и описания всех участников с возможностью редактирования
+                </div>
+            </div>
+        `;
+  }
+  // Для остальных - только свои реквизиты
+  else {
+    requisitesSection = `
+            <div class="settings-section">
+                <h3>💳 Мои реквизиты</h3>
+                <div class="form-group">
+                    <label class="form-label">Реквизиты для перевода</label>
+                    <input type="text" class="form-input" placeholder="Номер карты, телефон, email...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Описание (комментарий для Льва)</label>
+                    <input type="text" class="form-input" placeholder="Например: На Сбербанк">
+                </div>
+                <button class="btn btn-primary">Сохранить</button>
+            </div>
+        `;
+  }
+
   content.innerHTML = `
-        <div class="empty-state">
-            <div class="empty-state-icon">⚙️</div>
-            <div>Экран настроек в разработке</div>
+        <div class="settings-container">
+            <h2>⚙️ Настройки</h2>
+            
+            <!-- Цветовое оформление -->
+            <div class="settings-section">
+                <h3>🎨 Цветовое оформление</h3>
+                <div class="form-group">
+                    <label class="form-label">Акцентный цвет</label>
+                    <select class="form-select" id="setting-accent-color">
+                        <option value="blue">Синий</option>
+                        <option value="yellow">Жёлтый</option>
+                        <option value="pink">Розовый</option>
+                        <option value="green">Зелёный</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="btn-save-theme">Применить</button>
+            </div>
+            
+            <!-- Реквизиты -->
+            ${requisitesSection}
+            
+            <!-- Общак (только для админа) -->
+            ${
+              userRole === "admin"
+                ? `
+                <div class="settings-section">
+                    <h3>🏦 Реквизиты общака</h3>
+                    <div class="form-group">
+                        <label class="form-label">Реквизиты общего котла</label>
+                        <input type="text" class="form-input" placeholder="Номер счёта, карта...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Описание</label>
+                        <input type="text" class="form-input" placeholder="Например: Сбербанк бизнес">
+                    </div>
+                    <button class="btn btn-primary">Сохранить</button>
+                </div>
+            `
+                : ""
+            }
         </div>
     `;
+
+  // Обработчик смены цвета
+  document
+    .getElementById("btn-save-theme")
+    .addEventListener("click", async () => {
+      const newColor = document.getElementById("setting-accent-color").value;
+
+      try {
+        const response = await api.updateSettings({ accent_color: newColor });
+
+        if (response.success) {
+          // Применяем новый цвет
+          document.body.className = document.body.className.replace(
+            /accent-\w+/,
+            `accent-${newColor}`,
+          );
+          alert("Цвет изменён!");
+        } else {
+          alert("Ошибка: " + (response.error || "Не удалось сохранить"));
+        }
+      } catch (error) {
+        console.error("Error saving settings:", error);
+        alert("Ошибка: " + error.message);
+      }
+    });
 }

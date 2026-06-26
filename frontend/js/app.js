@@ -1,7 +1,9 @@
+// Основная логика приложения
+
 // Глобальные переменные
 let currentUser = null;
 let currentSettings = null;
-let currentScreen = "tasks";
+let currentScreen = "home";
 
 // Инициализация Telegram WebApp
 const tg = window.Telegram?.WebApp;
@@ -9,9 +11,6 @@ if (tg) {
   tg.ready();
   tg.expand();
   console.log("Telegram WebApp initialized");
-  console.log("initData:", tg.initData ? "present" : "missing");
-} else {
-  console.warn("Telegram WebApp not available");
 }
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
@@ -37,7 +36,7 @@ async function init() {
     console.log("Step 4: Navigation initialized");
 
     console.log("Step 5: Showing first screen...");
-    showScreen("tasks");
+    showScreen("home");
     console.log("Step 5: Screen shown");
 
     console.log("Step 6: Starting polling...");
@@ -57,10 +56,6 @@ async function authenticate() {
   console.log("Authenticating...");
 
   const initData = tg?.initData || "";
-  console.log(
-    "initData:",
-    initData ? "present (length: " + initData.length + ")" : "empty",
-  );
 
   if (!initData) {
     throw new Error(
@@ -69,7 +64,6 @@ async function authenticate() {
   }
 
   const response = await api.authTelegram(initData);
-  console.log("Auth response:", response);
 
   if (!response.success) {
     throw new Error(response.detail || "Authentication failed");
@@ -86,7 +80,6 @@ async function authenticate() {
 async function loadUserData() {
   console.log("Loading user data...");
   const data = await api.getMe();
-  console.log("User data:", data);
 
   if (data.error) {
     throw new Error(data.error);
@@ -101,45 +94,23 @@ async function loadUserData() {
 function applySettings(settings) {
   console.log("Applying settings:", settings);
 
-  if (!settings) {
-    console.warn("No settings to apply");
-    return;
-  }
+  if (!settings) return;
 
   const body = document.body;
-
-  // Очищаем все классы
   body.className = "";
 
-  // Тема
   body.classList.add(`theme-${settings.theme || "dark"}`);
-
-  // Акцентный цвет
   body.classList.add(`accent-${settings.accent_color || "blue"}`);
-
-  // Размер шрифта
   body.classList.add(`font-${settings.font_size || "medium"}`);
 
-  // Отключение эффектов
-  if (settings.disable_glow) {
-    body.classList.add("no-glow");
-  }
+  if (settings.disable_glow) body.classList.add("no-glow");
+  if (settings.disable_shadows) body.classList.add("no-shadow");
 
-  if (settings.disable_shadows) {
-    body.classList.add("no-shadow");
-  }
-
-  // Обновляем UI
   updateUI();
 }
 
 function updateUI() {
-  if (!currentUser) {
-    console.warn("No user to update UI");
-    return;
-  }
-
-  console.log("Updating UI for user:", currentUser.name);
+  if (!currentUser) return;
 
   document.getElementById("userName").textContent = currentUser.name;
   document.getElementById("userRole").textContent = getRoleName(
@@ -155,21 +126,64 @@ function updateUI() {
 function initNavigation() {
   console.log("Initializing navigation...");
 
-  const navItems = document.querySelectorAll(".nav-item");
+  const navbar = document.getElementById("navbar");
 
-  // Показываем пункт "Отладка" только для админа
-  if (currentUser && currentUser.role === "admin") {
-    document.getElementById("nav-debug").style.display = "flex";
+  // Определяем пункты навбара в зависимости от роли
+  let navItems = [];
+
+  if (currentUser.role === "manager") {
+    // Лев (менеджер)
+    navItems = [
+      { screen: "home", icon: "🏠", label: "Главная" },
+      { screen: "projects", icon: "📁", label: "Проекты" },
+      { screen: "payouts", icon: "💳", label: "Выплаты" },
+      { screen: "finances", icon: "💰", label: "Финансы" },
+      { screen: "settings", icon: "⚙️", label: "Настройки" },
+    ];
+  } else if (
+    currentUser.role === "lead_developer" ||
+    currentUser.role === "developer"
+  ) {
+    // Макс рабочий, Андрей (разработчики)
+    navItems = [
+      { screen: "home", icon: "🏠", label: "Главная" },
+      { screen: "tasks", icon: "📋", label: "Задачи" },
+      { screen: "finances", icon: "💰", label: "Финансы" },
+      { screen: "settings", icon: "⚙️", label: "Настройки" },
+    ];
+  } else if (currentUser.role === "admin") {
+    // Макс администратор
+    navItems = [
+      { screen: "home", icon: "🏠", label: "Главная" },
+      { screen: "projects", icon: "📁", label: "Проекты" },
+      { screen: "tasks", icon: "📋", label: "Задачи" },
+      { screen: "finances", icon: "💰", label: "Финансы" },
+      { screen: "settings", icon: "⚙️", label: "Настройки" },
+      { screen: "debug", icon: "🔍", label: "Отладка" },
+    ];
   }
 
-  navItems.forEach((item) => {
+  // Рендерим навбар
+  navbar.innerHTML = navItems
+    .map(
+      (item, index) => `
+        <div class="nav-item ${index === 0 ? "active" : ""}" data-screen="${item.screen}">
+            <div class="nav-icon">${item.icon}</div>
+            <div>${item.label}</div>
+        </div>
+    `,
+    )
+    .join("");
+
+  // Добавляем обработчики
+  navbar.querySelectorAll(".nav-item").forEach((item) => {
     item.addEventListener("click", () => {
       const screen = item.dataset.screen;
-      console.log("Navigation clicked:", screen);
       showScreen(screen);
 
-      // Обновляем активный пункт
-      navItems.forEach((i) => i.classList.remove("active"));
+      navbar
+        .querySelectorAll(".nav-item")
+        .forEach((i) => i.classList.remove("active"));
       item.classList.add("active");
     });
   });
@@ -180,7 +194,9 @@ function showScreen(screenName) {
 
   // Останавливаем автообновление отладки, если уходим с экрана
   if (currentScreen === "debug" && screenName !== "debug") {
-    stopDebugAutoRefresh();
+    if (typeof stopDebugAutoRefresh === "function") {
+      stopDebugAutoRefresh();
+    }
   }
 
   currentScreen = screenName;
@@ -194,8 +210,6 @@ function showScreen(screenName) {
   const screen = document.getElementById(`screen-${screenName}`);
   if (screen) {
     screen.classList.add("active");
-
-    // Загружаем данные для экрана
     loadScreenData(screenName);
   } else {
     console.error("Screen not found:", screenName);
@@ -207,33 +221,29 @@ async function loadScreenData(screenName) {
 
   try {
     switch (screenName) {
+      case "home":
+        if (typeof loadHomeScreen === "function") await loadHomeScreen();
+        break;
+      case "projects":
+        if (typeof loadProjectsScreen === "function")
+          await loadProjectsScreen();
+        break;
       case "tasks":
-        if (typeof loadTasksScreen === "function") {
-          await loadTasksScreen();
-        } else {
-          console.error("loadTasksScreen function not defined");
-        }
+        if (typeof loadTasksScreen === "function") await loadTasksScreen();
+        break;
+      case "payouts":
+        if (typeof loadPayoutsScreen === "function") await loadPayoutsScreen();
         break;
       case "finances":
-        if (typeof loadFinancesScreen === "function") {
+        if (typeof loadFinancesScreen === "function")
           await loadFinancesScreen();
-        } else {
-          console.error("loadFinancesScreen function not defined");
-        }
         break;
       case "settings":
-        if (typeof loadSettingsScreen === "function") {
+        if (typeof loadSettingsScreen === "function")
           await loadSettingsScreen();
-        } else {
-          console.error("loadSettingsScreen function not defined");
-        }
         break;
       case "debug":
-        if (typeof loadDebugScreen === "function") {
-          await loadDebugScreen();
-        } else {
-          console.error("loadDebugScreen function not defined");
-        }
+        if (typeof loadDebugScreen === "function") await loadDebugScreen();
         break;
       default:
         console.error("Unknown screen:", screenName);
@@ -242,6 +252,7 @@ async function loadScreenData(screenName) {
     console.error("Error loading screen:", screenName, error);
   }
 }
+
 // ===== POLLING =====
 
 let lastTimestamp = null;
@@ -255,14 +266,13 @@ async function startPolling() {
 
       if (response.hasUpdates) {
         console.log("Updates received, reloading screen...");
-        // Не вызываем loadUserData() — экономим ресурсы
         await loadScreenData(currentScreen);
         lastTimestamp = response.newTimestamp;
       }
     } catch (error) {
       console.error("Polling error:", error);
     }
-  }, 30000); // 30 секунд вместо 5
+  }, 30000);
 }
 
 // ===== УТИЛИТЫ =====

@@ -52,6 +52,7 @@ async function loadTasksScreen() {
 
 function renderTasksScreen() {
   const content = document.getElementById("screen-tasks");
+  const userRole = currentUser?.role;
 
   // Список проектов (выпадающий список)
   const projectsList = allProjects
@@ -63,6 +64,18 @@ function renderTasksScreen() {
     `,
     )
     .join("");
+
+  // Кнопка создания задачи (только для lead_developer и admin)
+  const createButtonHtml =
+    userRole === "lead_developer" || userRole === "admin"
+      ? `
+        <div class="tasks-actions">
+            <button class="btn btn-primary" id="btn-create-task">
+                ➕ Создать задачу
+            </button>
+        </div>
+    `
+      : "";
 
   content.innerHTML = `
         <div class="tasks-container">
@@ -109,10 +122,7 @@ function renderTasksScreen() {
                 </div>
             </div>
             
-            <!-- Кнопка создания задачи -->
-            <div class="tasks-actions" id="tasks-actions">
-                <!-- Заполняется динамически в зависимости от роли -->
-            </div>
+            ${createButtonHtml}
         </div>
     `;
 
@@ -124,8 +134,12 @@ function renderTasksScreen() {
       await loadTasksForProject(currentProjectId);
     });
 
-  // Кнопка создания задачи (только для lead_developer и admin)
-  updateCreateButton();
+  // Кнопка создания задачи
+  if (userRole === "lead_developer" || userRole === "admin") {
+    document.getElementById("btn-create-task").addEventListener("click", () => {
+      showCreateTaskModal();
+    });
+  }
 
   // Настраиваем drop zones
   setupDropZones();

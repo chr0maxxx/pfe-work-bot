@@ -65,15 +65,9 @@ frontend_path = os.path.join(os.path.dirname(__file__), '..', 'frontend')
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
-# Диагностика путей
-logger.info(f"Текущая директория: {os.path.dirname(__file__)}")
-logger.info(f"Путь к frontend: {frontend_path}")
-logger.info(f"Frontend существует: {os.path.exists(frontend_path)}")
-if os.path.exists(frontend_path):
-    logger.info(f"Содержимое frontend: {os.listdir(frontend_path)}")
-    
+
 # ============================================================
-# HEALTH CHECK (ВАЖНО: ДОЛЖЕН БЫТЬ ПЕРЕД ДРУГИМИ ENDPOINTS)
+# HEALTH CHECK
 # ============================================================
 
 @app.get("/health")
@@ -524,38 +518,16 @@ async def get_updates(since: str = None, session_id: str = None):
 
 # ----- ГЛАВНАЯ СТРАНИЦА -----
 
-# @app.get("/", response_class=HTMLResponse)
-# async def root():
-#     """Главная страница"""
-#     html_path = os.path.join(frontend_path, 'index.html')
-    
-#     if not os.path.exists(html_path):
-#         return HTMLResponse(content="<h1>Frontend not found</h1>", status_code=404)
-    
-#     with open(html_path, 'r', encoding='utf-8') as f:
-#         return HTMLResponse(content=f.read())
-
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Главная страница - пока просто тестовая"""
-    return HTMLResponse(content="""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Test</title>
-        <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    </head>
-    <body style="background: #1a1a1a; color: white; font-family: sans-serif; padding: 2rem;">
-        <h1>🎉 FastAPI работает!</h1>
-        <p>Если ты видишь эту страницу — значит бот и API на одном домене.</p>
-        <p>Telegram WebApp: <span id="tg-status">проверяем...</span></p>
-        <script>
-            const tg = window.Telegram?.WebApp;
-            document.getElementById('tg-status').textContent = tg ? '✅ Работает!' : '❌ Не работает';
-        </script>
-    </body>
-    </html>
-    """)
+    """Главная страница - отдаём index.html из frontend/"""
+    html_path = os.path.join(frontend_path, 'index.html')
+    
+    if not os.path.exists(html_path):
+        return HTMLResponse(content="<h1>Frontend not found</h1>", status_code=404)
+    
+    with open(html_path, 'r', encoding='utf-8') as f:
+        return HTMLResponse(content=f.read())
 
 
 # ============================================================
@@ -660,11 +632,9 @@ def get_role_name(role: str) -> str:
 
 async def start_fastapi():
     """Запуск FastAPI сервера"""
-    # Используем порт 80 (стандартный HTTP) или из переменной окружения
     port = int(os.getenv("PORT", 80))
     
     logger.info(f"FastAPI port: {port}")
-    logger.info(f"PORT env: {os.getenv('PORT', 'not set')}")
     
     config = uvicorn.Config(
         app,
@@ -690,7 +660,6 @@ async def start_bot():
 async def main():
     """Запуск обоих серверов параллельно"""
     logger.info("Запуск приложения...")
-    logger.info(f"FastAPI: http://0.0.0.0:8080")
     logger.info(f"WebApp URL: {WEBAPP_URL}")
     
     await asyncio.gather(

@@ -533,6 +533,58 @@ async def update_requisites(request: dict, session_id: str = None):
     return {"success": success}
 
 
+# ----- ЛОГИ (для админа) -----
+
+@app.get("/api/logs")
+async def get_logs(filter: str = 'all', session_id: str = None):
+    """Получить логи (только для админа)"""
+    if not session_id:
+        return {"error": "Not authenticated"}
+    
+    user = auth.get_user_from_session(session_id)
+    if not user:
+        return {"error": "Invalid session"}
+    
+    if user["role"] != "admin":
+        return {"error": "Access denied"}
+    
+    # Читаем все логи
+    logs = processor.get_activity_log(1000)  # Последние 1000 записей
+    
+    # Фильтруем если нужно
+    if filter != 'all':
+        logs = [log for log in logs if filter.upper() in log]
+    
+    return {"logs": logs}
+
+
+@app.delete("/api/logs")
+async def clear_logs(session_id: str = None):
+    """Очистить логи (только для админа)"""
+    if not session_id:
+        return {"error": "Not authenticated"}
+    
+    user = auth.get_user_from_session(session_id)
+    if not user:
+        return {"error": "Invalid session"}
+    
+    if user["role"] != "admin":
+        return {"error": "Access denied"}
+    
+    # Очищаем файл логов
+    log_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'activity.log')
+    
+    try:
+        with open(log_path, 'w', encoding='utf-8') as f:
+            f.write('')  # Очищаем файл
+        
+        processor.log_action(user["id"], "CLEARED_LOGS", "system", "All logs cleared by admin")
+        
+        return {"success": True}
+    except Exception as e:
+        return {"error": f"Failed to clear logs: {str(e)}"}
+    
+
 # ----- POLLING -----
 
 @app.get("/api/updates")

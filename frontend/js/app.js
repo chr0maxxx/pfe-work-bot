@@ -157,6 +157,11 @@ function initNavigation() {
 
   const navItems = document.querySelectorAll(".nav-item");
 
+  // Показываем пункт "Отладка" только для админа
+  if (currentUser && currentUser.role === "admin") {
+    document.getElementById("nav-debug").style.display = "flex";
+  }
+
   navItems.forEach((item) => {
     item.addEventListener("click", () => {
       const screen = item.dataset.screen;
@@ -172,6 +177,11 @@ function initNavigation() {
 
 function showScreen(screenName) {
   console.log("Showing screen:", screenName);
+
+  // Останавливаем автообновление отладки, если уходим с экрана
+  if (currentScreen === "debug" && screenName !== "debug") {
+    stopDebugAutoRefresh();
+  }
 
   currentScreen = screenName;
 
@@ -218,6 +228,13 @@ async function loadScreenData(screenName) {
           console.error("loadSettingsScreen function not defined");
         }
         break;
+      case "debug":
+        if (typeof loadDebugScreen === "function") {
+          await loadDebugScreen();
+        } else {
+          console.error("loadDebugScreen function not defined");
+        }
+        break;
       default:
         console.error("Unknown screen:", screenName);
     }
@@ -225,7 +242,6 @@ async function loadScreenData(screenName) {
     console.error("Error loading screen:", screenName, error);
   }
 }
-
 // ===== POLLING =====
 
 let lastTimestamp = null;

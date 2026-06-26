@@ -176,6 +176,17 @@ class API {
     const params = since ? `&since=${since}` : "";
     return this.get(`/api/updates?dummy=1${params}`);
   }
+
+  // ===== LOGS (для админа) =====
+
+  async getLogs(filter = "all") {
+    const params = filter !== "all" ? `?filter=${filter}` : "";
+    return this.get(`/api/logs${params}`);
+  }
+
+  async clearLogs() {
+    return this.request("/api/logs", { method: "DELETE" });
+  }
 }
 
 const api = new API();

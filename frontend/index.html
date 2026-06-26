@@ -53,6 +53,14 @@
                     <div>Загрузка настроек...</div>
                 </div>
             </div>
+
+            <!-- Debug Screen (только для админа) -->
+            <div class="screen" id="screen-debug">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Загрузка логов...</div>
+                </div>
+            </div>
         </div>
 
         <!-- Navbar -->
@@ -69,6 +77,10 @@
                 <div class="nav-icon">⚙️</div>
                 <div>Настройки</div>
             </div>
+            <div class="nav-item" data-screen="debug" id="nav-debug" style="display: none;">
+                <div class="nav-icon">🔍</div>
+                <div>Отладка</div>
+            </div>
         </div>
     </div>
 
@@ -77,6 +89,7 @@
     <script src="/static/js/tasks.js"></script>
     <script src="/static/js/finances.js"></script>
     <script src="/static/js/settings.js"></script>
+    <script src="/static/js/debug.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 

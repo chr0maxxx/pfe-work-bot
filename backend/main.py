@@ -2,7 +2,7 @@ import os
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-
+from datetime import datetime
 from dotenv import load_dotenv
 
 # Telegram
@@ -661,3 +661,16 @@ if __name__ == "__main__":
         logger.info("Приложение остановлено пользователем")
     except Exception as e:
         logger.error(f"Ошибка: {e}")
+        
+# ===== HEALTH CHECK =====
+
+@app.get("/health")
+async def health_check():
+    """Health check для Amvera"""
+    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+
+
+@app.get("/")
+async def root_health():
+    """Корневой путь тоже должен отвечать"""
+    return {"status": "ok", "message": "Web Studio API is running"}

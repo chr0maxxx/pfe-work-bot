@@ -1,7 +1,6 @@
 import os
 import asyncio
 import logging
-from contextlib import asynccontextmanager
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -60,7 +59,17 @@ if os.path.exists(frontend_path):
 
 
 # ============================================================
-# FASTAPI ENDPOINTS (переносим из api.py)
+# HEALTH CHECK (ВАЖНО: ДОЛЖЕН БЫТЬ ПЕРЕД ДРУГИМИ ENDPOINTS)
+# ============================================================
+
+@app.get("/health")
+async def health_check():
+    """Health check для Amvera"""
+    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+
+
+# ============================================================
+# FASTAPI ENDPOINTS
 # ============================================================
 
 # ----- АВТОРИЗАЦИЯ -----
@@ -81,8 +90,6 @@ async def auth_telegram(request: dict):
         user = result["user"]
         session_id = result["session_id"]
         
-        # ВАЖНО: Возвращаем session_id в теле ответа, 
-        # чтобы фронтенд сохранил его в localStorage
         return {
             "success": True,
             "user": {
@@ -92,7 +99,7 @@ async def auth_telegram(request: dict):
                 "can_impersonate": user.get("can_impersonate", False)
             },
             "settings": processor.get_settings(user["id"]),
-            "session_id": session_id  # ← Добавили
+            "session_id": session_id
         }
     
     except Exception as e:
@@ -159,7 +166,6 @@ async def get_projects(session_id: str = None):
     
     projects = processor.get_projects()
     
-    # Для разработчиков добавляем прогресс
     if user["role"] in ["lead_developer", "developer"]:
         user_projects = []
         for project in projects:
@@ -647,7 +653,6 @@ async def main():
     logger.info(f"FastAPI: http://0.0.0.0:8080")
     logger.info(f"WebApp URL: {WEBAPP_URL}")
     
-    # Запускаем оба сервера параллельно
     await asyncio.gather(
         start_fastapi(),
         start_bot()
@@ -661,16 +666,3 @@ if __name__ == "__main__":
         logger.info("Приложение остановлено пользователем")
     except Exception as e:
         logger.error(f"Ошибка: {e}")
-        
-# ===== HEALTH CHECK =====
-
-@app.get("/health")
-async def health_check():
-    """Health check для Amvera"""
-    return {"status": "ok", "timestamp": datetime.now().isoformat()}
-
-
-@app.get("/")
-async def root_health():
-    """Корневой путь тоже должен отвечать"""
-    return {"status": "ok", "message": "Web Studio API is running"}

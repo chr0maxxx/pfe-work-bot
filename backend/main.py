@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 # Конфигурация
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-domain.com")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://pfetc-bot-chr0maxxx.amvera.io")
 
 if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN not found in .env")
@@ -51,6 +51,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Middleware для логирования запросов
+@app.middleware("http")
+async def log_requests(request, call_next):
+    logger.info(f"REQUEST: {request.method} {request.url}")
+    response = await call_next(request)
+    logger.info(f"RESPONSE: {response.status_code}")
+    return response
 
 # Статические файлы (фронтенд)
 frontend_path = os.path.join(os.path.dirname(__file__), '..', 'frontend')

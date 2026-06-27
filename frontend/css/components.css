@@ -11,7 +11,7 @@
   font-size: 18px;
   color: var(--bg-primary);
   flex-shrink: 0;
-  box-shadow: 0 0 15px var(--shadow-glow);
+  /* [УБРАНО] box-shadow: 0 0 15px var(--shadow-glow); */
 }
 
 .avatar-sm {
@@ -23,17 +23,13 @@
 /* ===== COUNTER BLOCK ===== */
 .counter-block {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* [УБРАНО] backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); */
   border: 1px solid var(--glass-border);
   border-radius: 24px;
   padding: 40px 20px;
   text-align: center;
   margin-bottom: 24px;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 30px var(--shadow-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* [УБРАНО] box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 30px var(--shadow-glow), inset 0 1px 0 rgba(255,255,255,0.1); */
   position: relative;
   overflow: hidden;
 }
@@ -47,18 +43,11 @@
   height: 200%;
   background: radial-gradient(circle, var(--shadow-glow) 0%, transparent 60%);
   opacity: 0.3;
-  animation: rotate 20s linear infinite;
-  pointer-events: none; /* ← ИСПРАВЛЕНИЕ: псевдоэлемент не перехватывает клики */
+  /* [УБРАНО] animation: rotate 20s linear infinite; */
+  pointer-events: none;
 }
 
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+/* [УБРАНО] @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } */
 
 .counter-value {
   font-size: 72px;
@@ -71,23 +60,14 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 20px var(--shadow-glow));
+  /* [УБРАНО] filter: drop-shadow(0 0 20px var(--shadow-glow)); */
   position: relative;
   z-index: 1;
-  animation: countUp 0.8s ease-out;
+  /* [УБРАНО] animation: countUp 0.8s ease-out; */
   line-height: 1;
 }
 
-@keyframes countUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
+/* [УБРАНО] @keyframes countUp { ... } */
 
 .counter-label {
   font-size: 14px;
@@ -106,43 +86,25 @@
 /* ===== CARDS ===== */
 .card {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* [УБРАНО] backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); */
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 18px;
   margin-bottom: 14px;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 15px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition:
-    box-shadow 0.3s ease,
-    border-color 0.3s ease; /* ← ИСПРАВЛЕНИЕ: анимируем только нужные свойства */
+  /* [УБРАНО] box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.08); */
+  /* [УБРАНО] transition: box-shadow 0.3s ease, border-color 0.3s ease; */
   cursor: pointer;
-  will-change: box-shadow;
-  contain: layout style; /* ← ИСПРАВЛЕНИЕ: изоляция для производительности */
+  /* [УБРАНО] will-change: box-shadow; */
+  contain: layout style;
 }
 
-.card:hover {
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.4),
-    0 0 25px var(--shadow-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-  /* ← ИСПРАВЛЕНИЕ: убрали transform: translateY — это главная причина мигания */
-}
+/* [УБРАНО] .card:hover { ... } */
 
 .card-static {
   cursor: default;
 }
 
-.card-static:hover {
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 15px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
+/* [УБРАНО] .card-static:hover { ... } */
 
 /* ===== PROJECT CARDS ===== */
 .project-title {
@@ -189,7 +151,7 @@
 
 .project-deadline.overdue {
   color: #ff4444;
-  text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+  /* [УБРАНО] text-shadow: 0 0 10px rgba(255, 68, 68, 0.5); */
 }
 
 /* ===== PROGRESS BARS ===== */
@@ -213,11 +175,11 @@
   flex: 1;
   height: 10px;
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  /* [УБРАНО] backdrop-filter: blur(10px); */
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid var(--glass-border);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  /* [УБРАНО] box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); */
   position: relative;
 }
 
@@ -226,7 +188,7 @@
   background: linear-gradient(90deg, var(--accent-2) 0%, var(--accent-1) 100%);
   border-radius: 6px;
   position: relative;
-  box-shadow: 0 0 10px var(--shadow-glow);
+  /* [УБРАНО] box-shadow: 0 0 10px var(--shadow-glow); */
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -243,18 +205,11 @@
     rgba(255, 255, 255, 0.4) 50%,
     transparent 100%
   );
-  animation: shine 2s infinite;
-  pointer-events: none; /* ← ИСПРАВЛЕНИЕ */
+  /* [УБРАНО] animation: shine 2s infinite; */
+  pointer-events: none;
 }
 
-@keyframes shine {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
+/* [УБРАНО] @keyframes shine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } } */
 
 .progress-text {
   font-size: 12px;
@@ -271,7 +226,7 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  backdrop-filter: blur(10px);
+  /* [УБРАНО] backdrop-filter: blur(10px); */
   border: 1px solid rgba(255, 255, 255, 0.1);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -280,25 +235,25 @@
 .badge-success {
   background: rgba(80, 200, 120, 0.2);
   color: #50c878;
-  box-shadow: 0 0 10px rgba(80, 200, 120, 0.3);
+  /* [УБРАНО] box-shadow: 0 0 10px rgba(80, 200, 120, 0.3); */
 }
 
 .badge-warning {
   background: rgba(255, 165, 0, 0.2);
   color: #ffa500;
-  box-shadow: 0 0 10px rgba(255, 165, 0, 0.3);
+  /* [УБРАНО] box-shadow: 0 0 10px rgba(255, 165, 0, 0.3); */
 }
 
 .badge-error {
   background: rgba(255, 68, 68, 0.2);
   color: #ff4444;
-  box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
+  /* [УБРАНО] box-shadow: 0 0 10px rgba(255, 68, 68, 0.3); */
 }
 
 .badge-info {
   background: rgba(74, 144, 226, 0.2);
   color: #4a90e2;
-  box-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
+  /* [УБРАНО] box-shadow: 0 0 10px rgba(74, 144, 226, 0.3); */
 }
 
 /* ===== BUTTONS ===== */
@@ -310,10 +265,7 @@
   cursor: pointer;
   border: none;
   font-family: inherit;
-  transition:
-    box-shadow 0.25s ease,
-    background 0.25s ease,
-    border-color 0.25s ease; /* ← ИСПРАВЛЕНИЕ */
+  /* [УБРАНО] transition: box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease; */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -327,46 +279,28 @@
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-2) 100%);
   color: var(--bg-primary);
-  box-shadow:
-    0 4px 16px var(--shadow-glow),
-    0 0 20px var(--shadow-glow);
+  /* [УБРАНО] box-shadow: 0 4px 16px var(--shadow-glow), 0 0 20px var(--shadow-glow); */
 }
 
-.btn-primary:hover {
-  box-shadow:
-    0 8px 24px var(--shadow-glow-strong),
-    0 0 30px var(--shadow-glow);
-  /* ← ИСПРАВЛЕНИЕ: убрали transform: translateY и scale — они вызывают мигание */
-}
-
-.btn-primary:active {
-  box-shadow:
-    0 2px 8px var(--shadow-glow),
-    0 0 10px var(--shadow-glow);
-}
+/* [УБРАНО] .btn-primary:hover { ... } */
+/* [УБРАНО] .btn-primary:active { ... } */
 
 .btn-secondary {
   background: var(--glass-bg);
-  backdrop-filter: blur(10px);
+  /* [УБРАНО] backdrop-filter: blur(10px); */
   border: 1px solid var(--glass-border);
   color: var(--text-light);
 }
 
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--accent-1);
-  box-shadow: 0 0 15px var(--shadow-glow);
-}
+/* [УБРАНО] .btn-secondary:hover { ... } */
 
 .btn-danger {
   background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
   color: white;
-  box-shadow: 0 4px 16px rgba(255, 68, 68, 0.4);
+  /* [УБРАНО] box-shadow: 0 4px 16px rgba(255, 68, 68, 0.4); */
 }
 
-.btn-danger:hover {
-  box-shadow: 0 8px 24px rgba(255, 68, 68, 0.6);
-}
+/* [УБРАНО] .btn-danger:hover { ... } */
 
 .btn-sm {
   padding: 8px 14px;
@@ -393,14 +327,13 @@
   width: 100%;
   max-width: 500px;
   background: rgba(21, 12, 12, 0.7);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
+  /* [УБРАНО] backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); */
   border-top: 1px solid var(--glass-border);
   display: flex;
   justify-content: space-around;
   padding: 10px 8px;
   z-index: 100;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  /* [УБРАНО] box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3); */
 }
 
 @media (min-width: 768px) {
@@ -424,11 +357,7 @@
   padding: 8px 4px;
   border-radius: 12px;
   cursor: pointer;
-  transition:
-    background 0.25s ease,
-    color 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.25s ease; /* ← ИСПРАВЛЕНИЕ */
+  /* [УБРАНО] transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; */
   color: var(--text-dim);
   font-size: 10px;
   min-width: 0;
@@ -439,9 +368,7 @@
 
 .nav-icon {
   font-size: 20px;
-  transition:
-    transform 0.25s ease,
-    filter 0.25s ease;
+  /* [УБРАНО] transition: transform 0.25s ease, filter 0.25s ease; */
 }
 
 .nav-label {
@@ -452,39 +379,21 @@
   max-width: 100%;
 }
 
-.nav-item:hover {
-  color: var(--text-light);
-  background: var(--glass-bg);
-  /* ← ИСПРАВЛЕНИЕ: убрали transform, только цвет и фон */
-}
+/* [УБРАНО] .nav-item:hover { ... } */
 
 .nav-item.active {
   color: var(--accent-1);
   background: rgba(211, 152, 88, 0.15);
   border: 1px solid rgba(211, 152, 88, 0.3);
-  box-shadow:
-    0 0 20px var(--shadow-glow),
-    inset 0 0 15px rgba(211, 152, 88, 0.1);
-  animation: glow 2.5s ease-in-out infinite;
+  /* [УБРАНО] box-shadow: 0 0 20px var(--shadow-glow), inset 0 0 15px rgba(211, 152, 88, 0.1); */
+  /* [УБРАНО] animation: glow 2.5s ease-in-out infinite; */
 }
 
-@keyframes glow {
-  0%,
-  100% {
-    box-shadow:
-      0 0 20px var(--shadow-glow),
-      inset 0 0 15px rgba(211, 152, 88, 0.1);
-  }
-  50% {
-    box-shadow:
-      0 0 30px var(--shadow-glow-strong),
-      inset 0 0 20px rgba(211, 152, 88, 0.2);
-  }
-}
+/* [УБРАНО] @keyframes glow { 0%, 100% { ... } 50% { ... } } */
 
 .nav-item.active .nav-icon {
   transform: scale(1.1);
-  filter: drop-shadow(0 0 8px var(--accent-1));
+  /* [УБРАНО] filter: drop-shadow(0 0 8px var(--accent-1)); */
 }
 
 @media (max-width: 380px) {
@@ -504,13 +413,13 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
+  /* [УБРАНО] backdrop-filter: blur(8px); */
   z-index: 1000;
   display: none;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  animation: fadeIn 0.2s;
+  /* [УБРАНО] animation: fadeIn 0.2s; */
 }
 
 .modal-overlay.open {
@@ -519,7 +428,7 @@
 
 .modal {
   background: rgba(21, 12, 12, 0.95);
-  backdrop-filter: blur(30px);
+  /* [УБРАНО] backdrop-filter: blur(30px); */
   border: 1px solid var(--glass-border);
   border-radius: 20px;
   padding: 24px;
@@ -527,22 +436,11 @@
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 40px var(--shadow-glow);
-  animation: modalIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* [УБРАНО] box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px var(--shadow-glow); */
+  /* [УБРАНО] animation: modalIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); */
 }
 
-@keyframes modalIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
+/* [УБРАНО] @keyframes modalIn { ... } */
 
 .modal-header {
   display: flex;
@@ -568,15 +466,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
+  /* [УБРАНО] transition: background 0.2s ease, border-color 0.2s ease; */
 }
 
-.modal-close:hover {
-  background: rgba(255, 68, 68, 0.2);
-  border-color: #ff4444;
-}
+/* [УБРАНО] .modal-close:hover { ... } */
 
 .modal-actions {
   display: flex;
@@ -606,16 +499,13 @@
   width: 100%;
   padding: 12px 14px;
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  /* [УБРАНО] backdrop-filter: blur(10px); */
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   color: var(--text-light);
   font-size: 14px;
   font-family: inherit;
-  transition:
-    border-color 0.3s ease,
-    box-shadow 0.3s ease,
-    background 0.3s ease;
+  /* [УБРАНО] transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; */
 }
 
 .form-textarea {
@@ -629,9 +519,7 @@
   outline: none;
   background: rgba(255, 255, 255, 0.08);
   border-color: var(--accent-1);
-  box-shadow:
-    0 0 0 3px rgba(211, 152, 88, 0.1),
-    0 0 20px var(--shadow-glow);
+  /* [УБРАНО] box-shadow: 0 0 0 3px rgba(211, 152, 88, 0.1), 0 0 20px var(--shadow-glow); */
 }
 
 .form-input::placeholder {
@@ -655,14 +543,12 @@
 /* ===== TASK CARDS ===== */
 .task-card {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
+  /* [УБРАНО] backdrop-filter: blur(20px); */
   border: 1px solid var(--glass-border);
   border-radius: 14px;
   padding: 14px;
   margin-bottom: 10px;
-  transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease; /* ← ИСПРАВЛЕНИЕ */
+  /* [УБРАНО] transition: border-color 0.25s ease, box-shadow 0.25s ease; */
   cursor: grab;
   contain: layout style;
 }
@@ -671,18 +557,12 @@
   cursor: grabbing;
 }
 
-.task-card:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  /* ← ИСПРАВЛЕНИЕ: убрали transform: translateY */
-}
+/* [УБРАНО] .task-card:hover { ... } */
 
 .task-card.dragging {
   opacity: 0.6;
   transform: rotate(3deg) scale(1.03);
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 40px var(--shadow-glow);
+  /* [УБРАНО] box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px var(--shadow-glow); */
   z-index: 1000;
 }
 
@@ -721,24 +601,19 @@
 
 .task-block {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
+  /* [УБРАНО] backdrop-filter: blur(20px); */
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 14px;
   margin-bottom: 14px;
   min-height: 80px;
-  transition:
-    background 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+  /* [УБРАНО] transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; */
 }
 
 .task-block.drag-over {
   background: rgba(211, 152, 88, 0.1);
   border-color: var(--accent-1);
-  box-shadow:
-    inset 0 0 30px var(--shadow-glow),
-    0 0 20px var(--shadow-glow);
+  /* [УБРАНО] box-shadow: inset 0 0 30px var(--shadow-glow), 0 0 20px var(--shadow-glow); */
 }
 
 .task-block-header {
@@ -794,12 +669,12 @@
 
 .stat-card {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
+  /* [УБРАНО] backdrop-filter: blur(20px); */
   border: 1px solid var(--glass-border);
   border-radius: 14px;
   padding: 14px 10px;
   text-align: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  /* [УБРАНО] box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); */
 }
 
 .stat-label {
@@ -828,12 +703,12 @@
 /* ===== PAYMENTS ===== */
 .payment-person {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
+  /* [УБРАНО] backdrop-filter: blur(20px); */
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  /* [УБРАНО] box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); */
 }
 
 .payment-person-header {
@@ -857,7 +732,7 @@
   font-size: 17px;
   font-weight: 700;
   color: var(--accent-1);
-  text-shadow: 0 0 10px var(--shadow-glow);
+  /* [УБРАНО] text-shadow: 0 0 10px var(--shadow-glow); */
 }
 
 .payment-project {
@@ -893,7 +768,7 @@
 /* ===== SETTINGS ===== */
 .settings-section {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
+  /* [УБРАНО] backdrop-filter: blur(20px); */
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 18px;
@@ -920,9 +795,7 @@
   border-radius: 12px;
   border: 2px solid var(--glass-border);
   cursor: pointer;
-  transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease; /* ← ИСПРАВЛЕНИЕ */
+  /* [УБРАНО] transition: border-color 0.25s ease, box-shadow 0.25s ease; */
   background: var(--glass-bg);
   text-align: center;
   font-size: 13px;
@@ -930,15 +803,11 @@
   contain: layout style;
 }
 
-.theme-option:hover {
-  border-color: var(--accent-1);
-  box-shadow: 0 0 15px var(--shadow-glow);
-  /* ← ИСПРАВЛЕНИЕ: убрали transform: translateY */
-}
+/* [УБРАНО] .theme-option:hover { ... } */
 
 .theme-option.active {
   border-color: var(--accent-1);
-  box-shadow: 0 0 20px var(--shadow-glow);
+  /* [УБРАНО] box-shadow: 0 0 20px var(--shadow-glow); */
 }
 
 .theme-preview {
@@ -986,7 +855,7 @@
 /* ===== DEBUG LOG ===== */
 .log-entry {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
+  /* [УБРАНО] backdrop-filter: blur(20px); */
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   padding: 12px;
@@ -1077,15 +946,15 @@
 
 .notification {
   background: rgba(21, 12, 12, 0.95);
-  backdrop-filter: blur(20px);
+  /* [УБРАНО] backdrop-filter: blur(20px); */
   border: 1px solid var(--glass-border);
   border-left: 4px solid var(--accent-1);
   border-radius: 12px;
   padding: 12px 16px;
   min-width: 250px;
   max-width: 350px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  /* [УБРАНО] box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); */
+  /* [УБРАНО] animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); */
   pointer-events: auto;
   font-size: 14px;
 }
@@ -1100,27 +969,8 @@
   border-left-color: #ffa500;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(400px) rotate(10deg);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0) rotate(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideOut {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(400px);
-    opacity: 0;
-  }
-}
+/* [УБРАНО] @keyframes slideIn { ... } */
+/* [УБРАНО] @keyframes slideOut { ... } */
 
 /* ===== EMPTY STATE ===== */
 .empty-state {
@@ -1185,15 +1035,10 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 16px;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
+  /* [УБРАНО] transition: background 0.2s ease, border-color 0.2s ease; */
 }
 
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--accent-1);
-}
+/* [УБРАНО] .back-btn:hover { ... } */
 
 /* ===== FILTER ROW ===== */
 .filter-row {

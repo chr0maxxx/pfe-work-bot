@@ -734,7 +734,8 @@ async def cmd_help(message: types.Message):
 /get_requisites - requisites.json
 /get_settings - settings.json
 /get_sessions - sessions.json
-/get_log - activity.log
+/get_activity_log - activity.log (логи действий)
+/get_system_log - system.log (системные логи)
 /get_all - Все файлы
 """
     
@@ -905,15 +906,25 @@ async def cmd_get_sessions(message: types.Message):
     await send_file(message, file_path, "sessions.json")
 
 
-@dp.message(Command("get_log"))
-async def cmd_get_log(message: types.Message):
+@dp.message(Command("get_activity_log"))
+async def cmd_get_activity_log(message: types.Message):
     """Получить activity.log"""
     if not await check_admin(message):
         return
     
     file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'activity.log')
     await send_file(message, file_path, "activity.log")
-
+    
+    
+@dp.message(Command("get_system_log"))
+async def cmd_get_system_log(message: types.Message):
+    """Получить system.log"""
+    if not await check_admin(message):
+        return
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'system.log')
+    await send_file(message, file_path, "system.log")
+    
 
 @dp.message(Command("get_all"))
 async def cmd_get_all(message: types.Message):
@@ -925,9 +936,9 @@ async def cmd_get_all(message: types.Message):
     
     data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
     files = [
-        'users.json', 'projects.json', 'tasks.json', 'fractions.json',
-        'finances.json', 'requisites.json', 'settings.json', 
-        'sessions.json', 'activity.log'
+    'users.json', 'projects.json', 'tasks.json', 'fractions.json',
+    'finances.json', 'requisites.json', 'settings.json', 
+    'sessions.json', 'activity.log', 'system.log'
     ]
     
     for filename in files:

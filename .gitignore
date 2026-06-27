@@ -29,4 +29,5 @@ Thumbs.db
 *.bak
 *.backup
 backup*_raw/
+*old
 newdesign*.html

@@ -138,7 +138,7 @@ async function closeProject(projectId) {
     if (response.success) {
       notify("Проект закрыт");
       await loadAllData();
-      await render()
+      await render();
       backToProjects();
     } else {
       notify("Ошибка: " + (response.error || "Не удалось закрыть"), "error");
@@ -148,7 +148,8 @@ async function closeProject(projectId) {
   }
 }
 
-function backToProjects() {
+async function backToProjects() {
+  // ← добавили async
   state.selectedProject = null;
   await render();
 }

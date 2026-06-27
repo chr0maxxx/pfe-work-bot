@@ -18,12 +18,12 @@ formatter = logging.Formatter(
 
 # Обработчик для консоли
 console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.INFO)
+console_handler.setLevel(logging.DEBUG)  # ← DEBUG
 console_handler.setFormatter(formatter)
 
 # Обработчик для файла (добавляем поверх старых)
 file_handler = logging.FileHandler(LOG_FILE, mode='a', encoding='utf-8')
-file_handler.setLevel(logging.INFO)
+file_handler.setLevel(logging.DEBUG)  # ← DEBUG
 file_handler.setFormatter(formatter)
 
 # Добавляем обработчики

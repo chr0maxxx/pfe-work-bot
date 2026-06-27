@@ -58,8 +58,8 @@
     <div class="notifications" id="notifications"></div>
 
     <!-- JavaScript -->
+    <script src="/static/js/ui.js"></script> <!-- ← ПЕРВЫМ! (здесь $) -->
     <script src="/static/js/api.js"></script>
-    <script src="/static/js/ui.js"></script>
     <script src="/static/js/home.js"></script>
     <script src="/static/js/projects.js"></script>
     <script src="/static/js/tasks.js"></script>
@@ -67,7 +67,7 @@
     <script src="/static/js/finances.js"></script>
     <script src="/static/js/settings.js"></script>
     <script src="/static/js/debug.js"></script>
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js"></script> <!-- ← ПОСЛЕДНИМ -->
 </body>
 
 </html>

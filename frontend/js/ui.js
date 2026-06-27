@@ -72,7 +72,8 @@ function createParticles() {
 }
 
 // Theme
-function setTheme(theme) {
+async function setTheme(theme) {
+  // ← добавили async
   state.currentTheme = theme;
   document.body.dataset.theme = theme;
   localStorage.setItem("theme", theme);

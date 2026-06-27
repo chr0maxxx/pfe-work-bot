@@ -325,7 +325,8 @@ async function deleteTask(taskId) {
   }
 }
 
-function setTaskFilter(key, value) {
+async function setTaskFilter(key, value) {
+  // ← добавили async
   state.taskFilter[key] = value;
   await render();
 }

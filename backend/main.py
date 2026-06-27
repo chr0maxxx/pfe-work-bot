@@ -54,6 +54,13 @@ frontend_path = os.path.join(os.path.dirname(__file__), '..', 'frontend')
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
+# Middleware для логирования запросов
+@app.middleware("http")
+async def log_requests(request, call_next):
+    system_log.info(f"REQUEST: {request.method} {request.url}")
+    response = await call_next(request)
+    system_log.info(f"RESPONSE: {response.status_code}")
+    return response
 
 # ============================================================
 # HEALTH CHECK

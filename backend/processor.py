@@ -328,38 +328,3 @@ def update_requisites(user_id: str, requisites: Dict) -> bool:
     data = read_json('requisites.json')
     data[user_id] = requisites
     return write_json('requisites.json', data)
-
-
-# ============= ACTIVITY LOG =============
-
-def log_action(user_id: str, action: str, entity_id: str, details: str = ""):
-    """
-    Записать действие в лог
-    Формат: [timestamp] [user_id] ACTION entity_id details
-    """
-    timestamp = datetime.now().isoformat()
-    log_line = f"[{timestamp}] [{user_id}] {action} {entity_id} {details}\n"
-    
-    log_path = _get_file_path('activity.log')
-    
-    try:
-        with open(log_path, 'a', encoding='utf-8') as f:
-            f.write(log_line)
-    except Exception as e:
-        print(f"Ошибка записи в лог: {e}")
-
-
-def get_activity_log(last_n: int = 50) -> List[str]:
-    """Получить последние N записей из лога"""
-    log_path = _get_file_path('activity.log')
-    
-    if not os.path.exists(log_path):
-        return []
-    
-    try:
-        with open(log_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            return lines[-last_n:]
-    except Exception as e:
-        print(f"Ошибка чтения лога: {e}")
-        return []

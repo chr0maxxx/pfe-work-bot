@@ -21,6 +21,7 @@ import uvicorn
 import auth
 import processor
 import calculator
+import logger
 
 # Загружаем .env
 load_dotenv()
@@ -225,7 +226,7 @@ async def create_project(request: dict, session_id: str = None):
     
     calculator.initialize_fractions_for_project(project_id, request.get("total_budget"))
     
-    processor.log_action(
+    logger.log_action(
         user["id"], "CREATED_PROJECT", project_id,
         f"name={request.get('name')} budget={request.get('total_budget')}"
     )
@@ -250,7 +251,7 @@ async def update_project(project_id: str, request: dict, session_id: str = None)
         return {"error": "Failed to update project"}
     
     changes = [f"{k}={old_project.get(k)}->{v}" for k, v in request.items()]
-    processor.log_action(user["id"], "UPDATED_PROJECT", project_id, " ".join(changes))
+    logger.log_action(user["id"], "UPDATED_PROJECT", project_id, " ".join(changes))
     
     return {"success": True}
 
@@ -305,7 +306,7 @@ async def create_task(request: dict, session_id: str = None):
     
     calculator.update_developer_shares(project_id)
     
-    processor.log_action(
+    logger.log_action(
         user["id"], "CREATED_TASK", task_id,
         f"project={project_id} title={request.get('title')} cost={request.get('cost')}"
     )
@@ -341,7 +342,7 @@ async def update_task(task_id: str, request: dict, session_id: str = None):
         calculator.update_developer_shares(old_task["project_id"])
     
     changes = [f"{k}={old_task.get(k)}->{v}" for k, v in request.items()]
-    processor.log_action(user["id"], "UPDATED_TASK", task_id, " ".join(changes))
+    logger.log_action(user["id"], "UPDATED_TASK", task_id, " ".join(changes))
     
     return {"success": True}
 
@@ -368,7 +369,7 @@ async def complete_task(task_id: str, session_id: str = None):
     if not success:
         return {"error": "Failed to complete task"}
     
-    processor.log_action(user["id"], "COMPLETED_TASK", task_id, f"project={task['project_id']}")
+    logger.log_action(user["id"], "COMPLETED_TASK", task_id, f"project={task['project_id']}")
     
     return {"success": True}
 
@@ -398,7 +399,7 @@ async def delete_task(task_id: str, session_id: str = None):
     # Пересчитываем доли
     calculator.update_developer_shares(task["project_id"])
     
-    processor.log_action(
+    logger.log_action(
         user["id"], "DELETED_TASK", task_id,
         f"project={task['project_id']} title={task['title']}"
     )
@@ -442,7 +443,7 @@ async def register_client_payment(request: dict, session_id: str = None):
     if not success:
         return {"error": "Failed to register payment"}
     
-    processor.log_action(
+    logger.log_action(
         user["id"], "CLIENT_PAYMENT", request.get("project_id"),
         f"amount={request.get('amount')}"
     )
@@ -467,7 +468,7 @@ async def register_payout(request: dict, session_id: str = None):
     if not success:
         return {"error": "Failed to register payout"}
     
-    processor.log_action(
+    logger.log_action(
         user["id"], "PAYOUT", request.get("project_id"),
         f"user={request.get('user_id')} amount={request.get('amount')}"
     )
@@ -514,7 +515,7 @@ async def update_settings(request: dict, session_id: str = None):
                 changes.append(f"{key}={old_value}->{value}")
         
         if changes:
-            processor.log_action(
+            logger.log_action(
                 user["id"], 
                 "UPDATED_SETTINGS", 
                 f"user={user['id']}",
@@ -567,7 +568,7 @@ async def update_requisites(request: dict, session_id: str = None):
         })
         
         if success:
-            processor.log_action(
+            logger.log_action(
                 user["id"], "UPDATED_REQUISITES", "obshak",
                 f"Общак: value={request.get('requisite')}"
             )
@@ -589,7 +590,7 @@ async def update_requisites(request: dict, session_id: str = None):
                 changes.append(f"description={old_requisites.get('description')}->{request.get('description')}")
             
             if changes:
-                processor.log_action(
+                logger.log_action(
                     user["id"], "UPDATED_REQUISITES", f"user={user['id']}",
                     " ".join(changes)
                 )
@@ -612,10 +613,8 @@ async def get_logs(filter: str = 'all', session_id: str = None):
     if user["role"] != "admin":
         return {"error": "Access denied"}
     
-    # Читаем все логи
-    logs = processor.get_activity_log(1000)  # Последние 1000 записей
+    logs = logger.get_logs(1000)
     
-    # Фильтруем если нужно
     if filter != 'all':
         logs = [log for log in logs if filter.upper() in log]
     
@@ -635,18 +634,12 @@ async def clear_logs(session_id: str = None):
     if user["role"] != "admin":
         return {"error": "Access denied"}
     
-    # Очищаем файл логов
-    log_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'activity.log')
+    success = logger.clear_logs()
     
-    try:
-        with open(log_path, 'w', encoding='utf-8') as f:
-            f.write('')  # Очищаем файл
-        
-        processor.log_action(user["id"], "CLEARED_LOGS", "system", "All logs cleared by admin")
-        
-        return {"success": True}
-    except Exception as e:
-        return {"error": f"Failed to clear logs: {str(e)}"}
+    if success:
+        logger.log_action(user["id"], "CLEARED_LOGS", "system", "All logs cleared by admin")
+    
+    return {"success": success}
     
 
 # ----- POLLING -----
@@ -700,7 +693,7 @@ async def cmd_start(message: types.Message):
             "⛔️ Доступ запрещён.\n\n"
             "Ваш Telegram ID не найден в системе."
         )
-        processor.log_action("unknown", "UNAUTHORIZED_ACCESS", f"telegram_id={user.id}")
+        logger.log_action("unknown", "UNAUTHORIZED_ACCESS", f"telegram_id={user.id}")
         return
     
     welcome_text = f"""
@@ -720,7 +713,7 @@ async def cmd_start(message: types.Message):
     )
     
     await message.answer(welcome_text, reply_markup=builder.as_markup(), parse_mode="HTML")
-    processor.log_action(db_user['id'], "BOT_START", f"telegram_id={user.id}")
+    logger.log_action(db_user['id'], "BOT_START", f"telegram_id={user.id}")
 
 
 @dp.message(Command("help"))
@@ -974,7 +967,7 @@ async def check_admin(message: types.Message) -> bool:
     
     if not user or user['role'] != 'admin':
         await message.answer("⛔️ Доступ запрещён. Только для администратора.")
-        processor.log_action(
+        logger.log_action(
             "unknown", "UNAUTHORIZED_COMMAND", 
             f"command={message.text} telegram_id={message.from_user.id}",
             "Attempted admin command"
@@ -996,7 +989,7 @@ async def send_file(message: types.Message, file_path: str, filename: str):
                 types.BufferedInputFile(f.read(), filename=filename),
                 caption=f"📄 {filename}"
             )
-        processor.log_action(
+        logger.log_action(
             "u_001", "DOWNLOADED_FILE", filename,
             f"telegram_id={message.from_user.id}"
         )

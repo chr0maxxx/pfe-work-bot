@@ -56,7 +56,7 @@ async function init() {
     await authenticate();
 
     // Render
-    render();
+    await render();
 
     // Start polling
     startPolling();

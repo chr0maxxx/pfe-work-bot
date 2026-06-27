@@ -21,14 +21,14 @@ import uvicorn
 import auth
 import processor
 import calculator
-import logger
+import backend.logging as logging
 
 # Загружаем .env
 load_dotenv()
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logging = logging.getLogger(__name__)
 
 # Конфигурация
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -112,7 +112,7 @@ async def auth_telegram(request: dict):
         }
     
     except Exception as e:
-        logger.error(f"Auth error: {e}")
+        logging.error(f"Auth error: {e}")
         return {"success": False, "detail": str(e)}
 
 
@@ -226,7 +226,7 @@ async def create_project(request: dict, session_id: str = None):
     
     calculator.initialize_fractions_for_project(project_id, request.get("total_budget"))
     
-    logger.log_action(
+    logging.log_action(
         user["id"], "CREATED_PROJECT", project_id,
         f"name={request.get('name')} budget={request.get('total_budget')}"
     )
@@ -251,7 +251,7 @@ async def update_project(project_id: str, request: dict, session_id: str = None)
         return {"error": "Failed to update project"}
     
     changes = [f"{k}={old_project.get(k)}->{v}" for k, v in request.items()]
-    logger.log_action(user["id"], "UPDATED_PROJECT", project_id, " ".join(changes))
+    logging.log_action(user["id"], "UPDATED_PROJECT", project_id, " ".join(changes))
     
     return {"success": True}
 
@@ -306,7 +306,7 @@ async def create_task(request: dict, session_id: str = None):
     
     calculator.update_developer_shares(project_id)
     
-    logger.log_action(
+    logging.log_action(
         user["id"], "CREATED_TASK", task_id,
         f"project={project_id} title={request.get('title')} cost={request.get('cost')}"
     )
@@ -342,7 +342,7 @@ async def update_task(task_id: str, request: dict, session_id: str = None):
         calculator.update_developer_shares(old_task["project_id"])
     
     changes = [f"{k}={old_task.get(k)}->{v}" for k, v in request.items()]
-    logger.log_action(user["id"], "UPDATED_TASK", task_id, " ".join(changes))
+    logging.log_action(user["id"], "UPDATED_TASK", task_id, " ".join(changes))
     
     return {"success": True}
 
@@ -369,7 +369,7 @@ async def complete_task(task_id: str, session_id: str = None):
     if not success:
         return {"error": "Failed to complete task"}
     
-    logger.log_action(user["id"], "COMPLETED_TASK", task_id, f"project={task['project_id']}")
+    logging.log_action(user["id"], "COMPLETED_TASK", task_id, f"project={task['project_id']}")
     
     return {"success": True}
 
@@ -399,7 +399,7 @@ async def delete_task(task_id: str, session_id: str = None):
     # Пересчитываем доли
     calculator.update_developer_shares(task["project_id"])
     
-    logger.log_action(
+    logging.log_action(
         user["id"], "DELETED_TASK", task_id,
         f"project={task['project_id']} title={task['title']}"
     )
@@ -443,7 +443,7 @@ async def register_client_payment(request: dict, session_id: str = None):
     if not success:
         return {"error": "Failed to register payment"}
     
-    logger.log_action(
+    logging.log_action(
         user["id"], "CLIENT_PAYMENT", request.get("project_id"),
         f"amount={request.get('amount')}"
     )
@@ -468,7 +468,7 @@ async def register_payout(request: dict, session_id: str = None):
     if not success:
         return {"error": "Failed to register payout"}
     
-    logger.log_action(
+    logging.log_action(
         user["id"], "PAYOUT", request.get("project_id"),
         f"user={request.get('user_id')} amount={request.get('amount')}"
     )
@@ -515,7 +515,7 @@ async def update_settings(request: dict, session_id: str = None):
                 changes.append(f"{key}={old_value}->{value}")
         
         if changes:
-            logger.log_action(
+            logging.log_action(
                 user["id"], 
                 "UPDATED_SETTINGS", 
                 f"user={user['id']}",
@@ -568,7 +568,7 @@ async def update_requisites(request: dict, session_id: str = None):
         })
         
         if success:
-            logger.log_action(
+            logging.log_action(
                 user["id"], "UPDATED_REQUISITES", "obshak",
                 f"Общак: value={request.get('requisite')}"
             )
@@ -590,7 +590,7 @@ async def update_requisites(request: dict, session_id: str = None):
                 changes.append(f"description={old_requisites.get('description')}->{request.get('description')}")
             
             if changes:
-                logger.log_action(
+                logging.log_action(
                     user["id"], "UPDATED_REQUISITES", f"user={user['id']}",
                     " ".join(changes)
                 )
@@ -613,7 +613,7 @@ async def get_logs(filter: str = 'all', session_id: str = None):
     if user["role"] != "admin":
         return {"error": "Access denied"}
     
-    logs = logger.get_logs(1000)
+    logs = logging.get_logs(1000)
     
     if filter != 'all':
         logs = [log for log in logs if filter.upper() in log]
@@ -634,10 +634,10 @@ async def clear_logs(session_id: str = None):
     if user["role"] != "admin":
         return {"error": "Access denied"}
     
-    success = logger.clear_logs()
+    success = logging.clear_logs()
     
     if success:
-        logger.log_action(user["id"], "CLEARED_LOGS", "system", "All logs cleared by admin")
+        logging.log_action(user["id"], "CLEARED_LOGS", "system", "All logs cleared by admin")
     
     return {"success": success}
     
@@ -693,7 +693,7 @@ async def cmd_start(message: types.Message):
             "⛔️ Доступ запрещён.\n\n"
             "Ваш Telegram ID не найден в системе."
         )
-        logger.log_action("unknown", "UNAUTHORIZED_ACCESS", f"telegram_id={user.id}")
+        logging.log_action("unknown", "UNAUTHORIZED_ACCESS", f"telegram_id={user.id}")
         return
     
     welcome_text = f"""
@@ -713,7 +713,7 @@ async def cmd_start(message: types.Message):
     )
     
     await message.answer(welcome_text, reply_markup=builder.as_markup(), parse_mode="HTML")
-    logger.log_action(db_user['id'], "BOT_START", f"telegram_id={user.id}")
+    logging.log_action(db_user['id'], "BOT_START", f"telegram_id={user.id}")
 
 
 @dp.message(Command("help"))
@@ -801,7 +801,7 @@ async def start_fastapi():
     """Запуск FastAPI сервера"""
     port = int(os.getenv("PORT", 80))
     
-    logger.info(f"FastAPI port: {port}")
+    logging.info(f"FastAPI port: {port}")
     
     config = uvicorn.Config(
         app,
@@ -815,19 +815,19 @@ async def start_fastapi():
 
 async def start_bot():
     """Запуск Telegram бота"""
-    logger.info("Запуск Telegram бота...")
+    logging.info("Запуск Telegram бота...")
     try:
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot)
     finally:
         await bot.session.close()
-        logger.info("Бот остановлен")
+        logging.info("Бот остановлен")
 
 
 async def main():
     """Запуск обоих серверов параллельно"""
-    logger.info("Запуск приложения...")
-    logger.info(f"WebApp URL: {WEBAPP_URL}")
+    logging.info("Запуск приложения...")
+    logging.info(f"WebApp URL: {WEBAPP_URL}")
     
     await asyncio.gather(
         start_fastapi(),
@@ -967,7 +967,7 @@ async def check_admin(message: types.Message) -> bool:
     
     if not user or user['role'] != 'admin':
         await message.answer("⛔️ Доступ запрещён. Только для администратора.")
-        logger.log_action(
+        logging.log_action(
             "unknown", "UNAUTHORIZED_COMMAND", 
             f"command={message.text} telegram_id={message.from_user.id}",
             "Attempted admin command"
@@ -989,7 +989,7 @@ async def send_file(message: types.Message, file_path: str, filename: str):
                 types.BufferedInputFile(f.read(), filename=filename),
                 caption=f"📄 {filename}"
             )
-        logger.log_action(
+        logging.log_action(
             "u_001", "DOWNLOADED_FILE", filename,
             f"telegram_id={message.from_user.id}"
         )
@@ -1001,6 +1001,6 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.info("Приложение остановлено пользователем")
+        logging.info("Приложение остановлено пользователем")
     except Exception as e:
-        logger.error(f"Ошибка: {e}")
+        logging.error(f"Ошибка: {e}")

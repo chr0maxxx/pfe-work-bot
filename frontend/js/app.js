@@ -64,6 +64,7 @@ async function init() {
     console.log("=== INIT COMPLETE ===");
   } catch (error) {
     console.error("=== INIT ERROR ===", error);
+    showDebugError(error.message, error.stack); // ← показываем ошибку на экране
     showError("Ошибка инициализации: " + error.message);
   }
 }
@@ -267,3 +268,36 @@ document.addEventListener("DOMContentLoaded", () => {
   // Init app
   init();
 });
+
+function showDebugError(message, details = "") {
+  const errorDiv = document.createElement("div");
+  errorDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 0, 0, 0.9);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 80%;
+        z-index: 10000;
+        font-family: monospace;
+        font-size: 12px;
+    `;
+  errorDiv.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 10px;">ОШИБКА:</div>
+        <div>${message}</div>
+        ${details ? `<div style="margin-top: 10px; opacity: 0.8;">${details}</div>` : ""}
+        <button onclick="this.parentElement.remove()" style="
+            margin-top: 10px;
+            padding: 5px 15px;
+            background: white;
+            color: red;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        ">Закрыть</button>
+    `;
+  document.body.appendChild(errorDiv);
+}

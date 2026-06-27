@@ -28,23 +28,19 @@ class API {
     };
 
     try {
-      const response = await fetch(url, config);
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned HTML instead of JSON");
-      }
-
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      return data;
+        const response = await fetch(url, config);
+        const data = await response.json();
+        
+        if (data.error) {
+            // Логируем ошибку на сервере
+            console.error('API Error:', endpoint, data.error);
+            throw new Error(data.error);
+        }
+        
+        return data;
     } catch (error) {
-      console.error("API Error:", error);
-      throw error;
+        console.error('API Error:', endpoint, error);
+        throw error;
     }
   }
 

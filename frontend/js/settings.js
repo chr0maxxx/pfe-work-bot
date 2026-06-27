@@ -1,5 +1,30 @@
 // ===== SETTINGS SCREEN =====
 
+let myRequisites = { value: "", desc: "" };
+let allRequisites = {};
+
+async function loadSettingsScreen() {
+  console.log("Loading settings screen...");
+
+  try {
+    // Загружаем свои реквизиты
+    const myReqResponse = await api.getRequisites();
+    const user = state.currentUser;
+
+    if (myReqResponse.requisites) {
+      myRequisites = myReqResponse.requisites[user.id] || {
+        value: "",
+        desc: "",
+      };
+      allRequisites = myReqResponse.requisites;
+    }
+
+    render();
+  } catch (error) {
+    console.error("Error loading settings:", error);
+  }
+}
+
 function renderSettings() {
   const user = state.currentUser;
   const isAdmin = user.role === "admin";
@@ -19,9 +44,19 @@ function renderSettings() {
         
         <div class="settings-section">
             <div class="settings-title">💳 Мои реквизиты</div>
-            <div class="empty-state">
-                <div>Реквизиты (в разработке)</div>
+            <div class="form-group">
+                <label class="form-label">Реквизиты для перевода</label>
+                <input type="text" class="form-input" id="myRequisite" 
+                       value="${myRequisites.value}" 
+                       placeholder="Номер карты, телефон, email...">
             </div>
+            <div class="form-group">
+                <label class="form-label">Описание (для Льва)</label>
+                <input type="text" class="form-input" id="myRequisiteDesc" 
+                       value="${myRequisites.desc}" 
+                       placeholder="Например: На Сбербанк">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveMyRequisites()">Сохранить</button>
         </div>
         
         ${
@@ -29,9 +64,43 @@ function renderSettings() {
             ? `
             <div class="settings-section">
                 <div class="settings-title">🏦 Реквизиты общака</div>
-                <div class="empty-state">
-                    <div>Реквизиты общака (в разработке)</div>
+                <div class="form-group">
+                    <label class="form-label">Реквизиты</label>
+                    <input type="text" class="form-input" id="obshakRequisite" 
+                           value="${allRequisites.obshak?.value || ""}" 
+                           placeholder="Номер счёта, карта...">
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <input type="text" class="form-input" id="obshakRequisiteDesc" 
+                           value="${allRequisites.obshak?.desc || ""}" 
+                           placeholder="Например: Сбербанк бизнес">
+                </div>
+                <button class="btn btn-primary btn-block" onclick="saveObshakRequisites()">Сохранить</button>
+            </div>
+            
+            <div class="settings-section">
+                <div class="settings-title">👥 Реквизиты всех участников</div>
+                ${["u_002", "u_003", "u_004"]
+                  .map((userId) => {
+                    const req = allRequisites[userId] || {
+                      value: "Не указаны",
+                      desc: "",
+                    };
+                    const userName = getUserName(userId);
+
+                    return `
+                        <div class="requisite-item">
+                            <div class="requisite-header">
+                                <div class="avatar avatar-sm">${userName.charAt(0)}</div>
+                                <span>${userName}</span>
+                            </div>
+                            <div class="requisite-value">${req.value}</div>
+                            ${req.desc ? `<div class="requisite-desc">💬 ${req.desc}</div>` : ""}
+                        </div>
+                    `;
+                  })
+                  .join("")}
             </div>
         `
             : ""
@@ -49,4 +118,68 @@ function renderThemeOption(id, label, colors) {
             <div>${label}</div>
         </div>
     `;
+}
+
+async function saveMyRequisites() {
+  const value = $("#myRequisite").value.trim();
+  const desc = $("#myRequisiteDesc").value.trim();
+
+  if (!value) {
+    notify("Укажите реквизиты", "error");
+    return;
+  }
+
+  try {
+    const user = state.currentUser;
+    const response = await api.updateRequisites({
+      requisite: value,
+      description: desc,
+    });
+
+    if (response.success) {
+      notify("Реквизиты сохранены");
+      myRequisites = { value, desc };
+    } else {
+      notify("Ошибка: " + (response.error || "Не удалось сохранить"), "error");
+    }
+  } catch (error) {
+    notify("Ошибка: " + error.message, "error");
+  }
+}
+
+async function saveObshakRequisites() {
+  const value = $("#obshakRequisite").value.trim();
+  const desc = $("#obshakRequisiteDesc").value.trim();
+
+  if (!value) {
+    notify("Укажите реквизиты общака", "error");
+    return;
+  }
+
+  try {
+    // Для общака используем специальный ключ
+    const response = await api.updateRequisites({
+      requisite: value,
+      description: desc,
+      is_obshak: true,
+    });
+
+    if (response.success) {
+      notify("Реквизиты общака сохранены");
+    } else {
+      notify("Ошибка: " + (response.error || "Не удалось сохранить"), "error");
+    }
+  } catch (error) {
+    notify("Ошибка: " + error.message, "error");
+  }
+}
+
+function getUserName(userId) {
+  const names = {
+    u_001: "Макс (Админ)",
+    u_002: "Максим",
+    u_003: "Андрей",
+    u_004: "Лев",
+  };
+  return names[userId] || userId;
 }

@@ -194,14 +194,15 @@ function renderScreen() {
       html = state.selectedProject ? renderProjectDetail() : renderProjects();
       break;
     case "tasks":
-      // Загружаем данные задач асинхронно
       loadTasksScreen();
       html = renderTasks();
       break;
     case "payments":
+      loadPayoutsScreen();
       html = renderPayments();
       break;
     case "finance":
+      loadFinancesScreen();
       html = renderFinance();
       break;
     case "settings":

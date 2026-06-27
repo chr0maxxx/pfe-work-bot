@@ -536,7 +536,9 @@ async def get_requisites(session_id: str = None):
     if not user:
         return {"error": "Invalid session"}
     
-    return {"requisites": processor.get_requisites(user["id"])}
+    # Возвращаем все реквизиты
+    all_requisites = processor.read_json('requisites.json')
+    return {"requisites": all_requisites}
 
 
 @app.patch("/api/requisites")
@@ -549,28 +551,50 @@ async def update_requisites(request: dict, session_id: str = None):
     if not user:
         return {"error": "Invalid session"}
     
-    # Получаем старые реквизиты для логирования
-    old_requisites = processor.get_requisites(user["id"])
+    # Проверяем, это реквизиты общака
+    is_obshak = request.get("is_obshak", False)
     
-    success = processor.update_requisites(user["id"], request)
-    
-    if success:
-        # Логируем изменения
-        changes = []
-        for key, value in request.items():
-            old_value = old_requisites.get(key)
-            if old_value != value:
-                changes.append(f"{key}={old_value}->{value}")
+    if is_obshak:
+        # Только админ может редактировать реквизиты общака
+        if user["role"] != "admin":
+            return {"error": "Access denied"}
         
-        if changes:
+        # Сохраняем реквизиты общака
+        old_requisites = processor.get_requisites("obshak")
+        success = processor.update_requisites("obshak", {
+            "value": request.get("requisite", ""),
+            "description": request.get("description", "")
+        })
+        
+        if success:
             processor.log_action(
-                user["id"], 
-                "UPDATED_REQUISITES", 
-                f"user={user['id']}",
-                " ".join(changes)
+                user["id"], "UPDATED_REQUISITES", "obshak",
+                f"Общак: value={request.get('requisite')}"
             )
-    
-    return {"success": success}
+        
+        return {"success": success}
+    else:
+        # Обычные реквизиты пользователя
+        old_requisites = processor.get_requisites(user["id"])
+        success = processor.update_requisites(user["id"], {
+            "value": request.get("requisite", ""),
+            "description": request.get("description", "")
+        })
+        
+        if success:
+            changes = []
+            if old_requisites.get("value") != request.get("requisite"):
+                changes.append(f"value={old_requisites.get('value')}->{request.get('requisite')}")
+            if old_requisites.get("description") != request.get("description"):
+                changes.append(f"description={old_requisites.get('description')}->{request.get('description')}")
+            
+            if changes:
+                processor.log_action(
+                    user["id"], "UPDATED_REQUISITES", f"user={user['id']}",
+                    " ".join(changes)
+                )
+        
+        return {"success": success}
 
 
 # ----- ЛОГИ (для админа) -----

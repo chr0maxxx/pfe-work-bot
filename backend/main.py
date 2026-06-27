@@ -630,10 +630,13 @@ async def clear_logs(session_id: str = None):
     if user["role"] != "admin":
         return {"error": "Access denied"}
     
-    success = activity_log.clear_logs()
+    # Логируем ДО очистки
+    activity_log.log_action(
+        user["id"], "CLEARED_LOGS", "system", 
+        "All logs cleared by admin"
+    )
     
-    if success:
-        activity_log.log_action(user["id"], "CLEARED_LOGS", "system", "All logs cleared by admin")
+    success = activity_log.clear_logs()
     
     return {"success": success}
     
@@ -921,6 +924,15 @@ async def cmd_get_activity_log(message: types.Message):
         return
     
     file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'activity.log')
+    
+    # Создаём файл если его нет
+    if not os.path.exists(file_path):
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write('')
+        await message.answer("⚠️ Файл activity.log не существовал, создан новый (пустой)")
+        return
+    
     await send_file(message, file_path, "activity.log")
     
     
@@ -931,6 +943,15 @@ async def cmd_get_system_log(message: types.Message):
         return
     
     file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'system.log')
+    
+    # Создаём файл если его нет
+    if not os.path.exists(file_path):
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write('')
+        await message.answer("⚠️ Файл system.log не существовал, создан новый (пустой)")
+        return
+    
     await send_file(message, file_path, "system.log")
     
 
@@ -996,6 +1017,8 @@ async def send_file(message: types.Message, file_path: str, filename: str):
                 types.BufferedInputFile(f.read(), filename=filename),
                 caption=f"📄 {filename}"
             )
+        
+        # Логируем скачивание файла
         activity_log.log_action(
             "u_001", "DOWNLOADED_FILE", filename,
             f"telegram_id={message.from_user.id}"

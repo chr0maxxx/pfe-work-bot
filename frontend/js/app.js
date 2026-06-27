@@ -161,24 +161,25 @@ function renderNavbar() {
     )
     .join("");
 
-  navbar.querySelectorAll(".nav-item").forEach((el) => {
-    el.addEventListener("click", () => {
-      const newScreen = el.dataset.screen;
+  // Используем делегирование событий — навешиваем ОДИН обработчик на navbar
+  navbar.onclick = (e) => {
+    const navItem = e.target.closest(".nav-item");
+    if (!navItem) return;
 
-      // Останавливаем автообновление отладки, если уходим с экрана
-      if (state.currentScreen === "debug" && newScreen !== "debug") {
-        if (typeof stopDebugAutoRefresh === "function") {
-          stopDebugAutoRefresh();
-        }
+    const newScreen = navItem.dataset.screen;
+
+    // Останавливаем автообновление отладки, если уходим с экрана
+    if (state.currentScreen === "debug" && newScreen !== "debug") {
+      if (typeof stopDebugAutoRefresh === "function") {
+        stopDebugAutoRefresh();
       }
+    }
 
-      state.currentScreen = newScreen;
-      state.selectedProject = null;
-      render();
-    });
-  });
+    state.currentScreen = newScreen;
+    state.selectedProject = null;
+    render();
+  };
 }
-
 function renderScreen() {
   const main = $("#main");
   if (!main) return;
@@ -204,6 +205,8 @@ function renderScreen() {
     case "finance":
       loadFinancesScreen();
       html = renderFinance();
+      // Навешиваем обработчики после рендера
+      setTimeout(attachFinanceHandlers, 0);
       break;
     case "settings":
       html = renderSettings();

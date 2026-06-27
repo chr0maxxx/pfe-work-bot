@@ -739,6 +739,24 @@ async def cmd_help(message: types.Message):
 /mytasks - Мои задачи
 /mybalance - Мой баланс
 """
+    
+    # Добавляем команды для админа
+    if db_user['role'] == 'admin':
+        help_text += """
+🔧 <b>Команды администратора:</b>
+
+/get_users - users.json
+/get_projects - projects.json
+/get_tasks - tasks.json
+/get_fractions - fractions.json
+/get_finances - finances.json
+/get_requisites - requisites.json
+/get_settings - settings.json
+/get_sessions - sessions.json
+/get_log - activity.log
+/get_all - Все файлы
+"""
+    
     await message.answer(help_text, parse_mode="HTML")
 
 
@@ -822,6 +840,168 @@ async def main():
         start_fastapi(),
         start_bot()
     )
+
+
+# ===== КОМАНДЫ ДЛЯ АДМИНА: ПОЛУЧЕНИЕ ФАЙЛОВ =====
+
+@dp.message(Command("get_users"))
+async def cmd_get_users(message: types.Message):
+    """Получить users.json"""
+    if not await check_admin(message):
+        return
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'users.json')
+    await send_file(message, file_path, "users.json")
+
+
+@dp.message(Command("get_projects"))
+async def cmd_get_projects(message: types.Message):
+    """Получить projects.json"""
+    if not await check_admin(message):
+        return
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'projects.json')
+    await send_file(message, file_path, "projects.json")
+
+
+@dp.message(Command("get_tasks"))
+async def cmd_get_tasks(message: types.Message):
+    """Получить tasks.json"""
+    if not await check_admin(message):
+        return
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'tasks.json')
+    await send_file(message, file_path, "tasks.json")
+
+
+@dp.message(Command("get_fractions"))
+async def cmd_get_fractions(message: types.Message):
+    """Получить fractions.json"""
+    if not await check_admin(message):
+        return
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'fractions.json')
+    await send_file(message, file_path, "fractions.json")
+
+
+@dp.message(Command("get_finances"))
+async def cmd_get_finances(message: types.Message):
+    """Получить finances.json"""
+    if not await check_admin(message):
+        return
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'finances.json')
+    await send_file(message, file_path, "finances.json")
+
+
+@dp.message(Command("get_requisites"))
+async def cmd_get_requisites(message: types.Message):
+    """Получить requisites.json"""
+    if not await check_admin(message):
+        return
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'requisites.json')
+    await send_file(message, file_path, "requisites.json")
+
+
+@dp.message(Command("get_settings"))
+async def cmd_get_settings(message: types.Message):
+    """Получить settings.json"""
+    if not await check_admin(message):
+        return
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'settings.json')
+    await send_file(message, file_path, "settings.json")
+
+
+@dp.message(Command("get_sessions"))
+async def cmd_get_sessions(message: types.Message):
+    """Получить sessions.json"""
+    if not await check_admin(message):
+        return
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'sessions.json')
+    await send_file(message, file_path, "sessions.json")
+
+
+@dp.message(Command("get_log"))
+async def cmd_get_log(message: types.Message):
+    """Получить activity.log"""
+    if not await check_admin(message):
+        return
+    
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'activity.log')
+    await send_file(message, file_path, "activity.log")
+
+
+@dp.message(Command("get_all"))
+async def cmd_get_all(message: types.Message):
+    """Получить все файлы"""
+    if not await check_admin(message):
+        return
+    
+    await message.answer("📦 Отправляю все файлы...")
+    
+    data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
+    files = [
+        'users.json', 'projects.json', 'tasks.json', 'fractions.json',
+        'finances.json', 'requisites.json', 'settings.json', 
+        'sessions.json', 'activity.log'
+    ]
+    
+    for filename in files:
+        file_path = os.path.join(data_dir, filename)
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, 'rb') as f:
+                    await message.answer_document(
+                        types.BufferedInputFile(f.read(), filename=filename),
+                        caption=f"📄 {filename}"
+                    )
+            except Exception as e:
+                await message.answer(f"❌ Ошибка отправки {filename}: {str(e)}")
+        else:
+            await message.answer(f"⚠️ Файл {filename} не найден")
+    
+    await message.answer("✅ Все файлы отправлены!")
+
+
+# ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ КОМАНД АДМИНА =====
+
+async def check_admin(message: types.Message) -> bool:
+    """Проверяет, является ли пользователь админом"""
+    user = processor.get_user_by_telegram_id(message.from_user.id)
+    
+    if not user or user['role'] != 'admin':
+        await message.answer("⛔️ Доступ запрещён. Только для администратора.")
+        processor.log_action(
+            "unknown", "UNAUTHORIZED_COMMAND", 
+            f"command={message.text} telegram_id={message.from_user.id}",
+            "Attempted admin command"
+        )
+        return False
+    
+    return True
+
+
+async def send_file(message: types.Message, file_path: str, filename: str):
+    """Отправляет файл пользователю"""
+    if not os.path.exists(file_path):
+        await message.answer(f"⚠️ Файл {filename} не найден")
+        return
+    
+    try:
+        with open(file_path, 'rb') as f:
+            await message.answer_document(
+                types.BufferedInputFile(f.read(), filename=filename),
+                caption=f"📄 {filename}"
+            )
+        processor.log_action(
+            "u_001", "DOWNLOADED_FILE", filename,
+            f"telegram_id={message.from_user.id}"
+        )
+    except Exception as e:
+        await message.answer(f"❌ Ошибка отправки файла: {str(e)}")
 
 
 if __name__ == "__main__":

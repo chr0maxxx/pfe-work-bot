@@ -48,6 +48,7 @@
   background: radial-gradient(circle, var(--shadow-glow) 0%, transparent 60%);
   opacity: 0.3;
   animation: rotate 20s linear infinite;
+  pointer-events: none; /* ← ИСПРАВЛЕНИЕ: псевдоэлемент не перехватывает клики */
 }
 
 @keyframes rotate {
@@ -115,17 +116,21 @@
     0 8px 32px rgba(0, 0, 0, 0.3),
     0 0 15px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease; /* ← ИСПРАВЛЕНИЕ: анимируем только нужные свойства */
   cursor: pointer;
+  will-change: box-shadow;
+  contain: layout style; /* ← ИСПРАВЛЕНИЕ: изоляция для производительности */
 }
 
 .card:hover {
-  transform: translateY(-3px);
   box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.4),
     0 0 25px var(--shadow-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.2);
+  /* ← ИСПРАВЛЕНИЕ: убрали transform: translateY — это главная причина мигания */
 }
 
 .card-static {
@@ -133,7 +138,10 @@
 }
 
 .card-static:hover {
-  transform: none;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* ===== PROJECT CARDS ===== */
@@ -236,6 +244,7 @@
     transparent 100%
   );
   animation: shine 2s infinite;
+  pointer-events: none; /* ← ИСПРАВЛЕНИЕ */
 }
 
 @keyframes shine {
@@ -301,12 +310,18 @@
   cursor: pointer;
   border: none;
   font-family: inherit;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    box-shadow 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease; /* ← ИСПРАВЛЕНИЕ */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   min-height: 44px;
+  position: relative;
+  z-index: 1;
+  contain: layout style;
 }
 
 .btn-primary {
@@ -318,14 +333,16 @@
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px) scale(1.02);
   box-shadow:
     0 8px 24px var(--shadow-glow-strong),
     0 0 30px var(--shadow-glow);
+  /* ← ИСПРАВЛЕНИЕ: убрали transform: translateY и scale — они вызывают мигание */
 }
 
 .btn-primary:active {
-  transform: translateY(0) scale(0.98);
+  box-shadow:
+    0 2px 8px var(--shadow-glow),
+    0 0 10px var(--shadow-glow);
 }
 
 .btn-secondary {
@@ -345,6 +362,10 @@
   background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
   color: white;
   box-shadow: 0 4px 16px rgba(255, 68, 68, 0.4);
+}
+
+.btn-danger:hover {
+  box-shadow: 0 8px 24px rgba(255, 68, 68, 0.6);
 }
 
 .btn-sm {
@@ -403,16 +424,24 @@
   padding: 8px 4px;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.25s;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease; /* ← ИСПРАВЛЕНИЕ */
   color: var(--text-dim);
   font-size: 10px;
   min-width: 0;
   border: 1px solid transparent;
+  position: relative;
+  contain: layout style;
 }
 
 .nav-icon {
   font-size: 20px;
-  transition: all 0.25s;
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease;
 }
 
 .nav-label {
@@ -426,6 +455,7 @@
 .nav-item:hover {
   color: var(--text-light);
   background: var(--glass-bg);
+  /* ← ИСПРАВЛЕНИЕ: убрали transform, только цвет и фон */
 }
 
 .nav-item.active {
@@ -538,7 +568,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .modal-close:hover {
@@ -580,7 +612,10 @@
   color: var(--text-light);
   font-size: 14px;
   font-family: inherit;
-  transition: all 0.3s;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
 }
 
 .form-textarea {
@@ -625,8 +660,11 @@
   border-radius: 14px;
   padding: 14px;
   margin-bottom: 10px;
-  transition: all 0.25s;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease; /* ← ИСПРАВЛЕНИЕ */
   cursor: grab;
+  contain: layout style;
 }
 
 .task-card:active {
@@ -635,8 +673,8 @@
 
 .task-card:hover {
   border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  /* ← ИСПРАВЛЕНИЕ: убрали transform: translateY */
 }
 
 .task-card.dragging {
@@ -689,7 +727,10 @@
   padding: 14px;
   margin-bottom: 14px;
   min-height: 80px;
-  transition: all 0.3s;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .task-block.drag-over {
@@ -879,15 +920,20 @@
   border-radius: 12px;
   border: 2px solid var(--glass-border);
   cursor: pointer;
-  transition: all 0.25s;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease; /* ← ИСПРАВЛЕНИЕ */
   background: var(--glass-bg);
   text-align: center;
   font-size: 13px;
   font-weight: 600;
+  contain: layout style;
 }
 
 .theme-option:hover {
-  transform: translateY(-2px);
+  border-color: var(--accent-1);
+  box-shadow: 0 0 15px var(--shadow-glow);
+  /* ← ИСПРАВЛЕНИЕ: убрали transform: translateY */
 }
 
 .theme-option.active {
@@ -1139,7 +1185,9 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 16px;
-  transition: all 0.2s;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .back-btn:hover {

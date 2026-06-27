@@ -21,6 +21,7 @@ import auth
 import processor
 import calculator
 import activity_log
+import system_log
 
 # Загружаем .env
 load_dotenv()
@@ -99,7 +100,7 @@ async def auth_telegram(request: dict):
         }
     
     except Exception as e:
-        activity_log.error(f"Auth error: {e}")
+        system_log.error(f"Auth error: {e}")
         return {"success": False, "detail": str(e)}
 
 
@@ -637,7 +638,7 @@ async def get_updates(since: str = None, session_id: str = None):
     if not session_id:
         return {"error": "Not authenticated"}
     
-    logs = processor.get_activity_log(100)
+    logs = activity_log.get_logs(100)
     updates = []
     
     for log in logs:
@@ -788,7 +789,7 @@ async def start_fastapi():
     """Запуск FastAPI сервера"""
     port = int(os.getenv("PORT", 80))
     
-    print(f"FastAPI port: {port}")
+    system_log.info(f"FastAPI port: {port}")
     
     config = uvicorn.Config(
         app,
@@ -802,19 +803,19 @@ async def start_fastapi():
 
 async def start_bot():
     """Запуск Telegram бота"""
-    print("Запуск Telegram бота...")
+    system_log.info("Запуск Telegram бота...")
     try:
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot)
     finally:
         await bot.session.close()
-        print("Бот остановлен")
+        system_log.info("Бот остановлен")
 
 
 async def main():
     """Запуск обоих серверов параллельно"""
-    print("Запуск приложения...")
-    print(f"WebApp URL: {WEBAPP_URL}")
+    system_log.info("Запуск приложения...")
+    system_log.info(f"WebApp URL: {WEBAPP_URL}")
     
     await asyncio.gather(
         start_fastapi(),
@@ -988,6 +989,6 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("Приложение остановлено пользователем")
+        system_log.info("Приложение остановлено пользователем")
     except Exception as e:
-        activity_log.error(f"Ошибка: {e}")
+        system_log.error(f"Ошибка: {e}")

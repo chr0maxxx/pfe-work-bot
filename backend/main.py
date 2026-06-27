@@ -26,7 +26,6 @@ import activity_log
 load_dotenv()
 
 # Настройка логирования
-activity_log.basicConfig(level=activity_log.INFO)
 activity_log = activity_log.getLogger(__name__)
 
 # Конфигурация

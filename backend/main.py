@@ -25,9 +25,6 @@ import activity_log
 # Загружаем .env
 load_dotenv()
 
-# Настройка логирования
-activity_log = activity_log.getLogger(__name__)
-
 # Конфигурация
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://pfetc-bot-chr0maxxx.amvera.io")

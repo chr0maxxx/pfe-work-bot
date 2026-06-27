@@ -18,8 +18,6 @@ async function loadSettingsScreen() {
       };
       allRequisites = myReqResponse.requisites;
     }
-
-    render();
   } catch (error) {
     console.error("Error loading settings:", error);
   }

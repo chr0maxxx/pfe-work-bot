@@ -76,6 +76,6 @@ function setTheme(theme) {
   state.currentTheme = theme;
   document.body.dataset.theme = theme;
   localStorage.setItem("theme", theme);
-  render();
+  await render();
   notify("Тема изменена");
 }

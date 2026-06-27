@@ -15,8 +15,6 @@ async function loadTasksScreen() {
     // Загружаем все задачи
     const tasksData = await api.getTasks();
     allTasks = tasksData.tasks || [];
-
-    render();
   } catch (error) {
     console.error("Error loading tasks:", error);
     notify("Ошибка загрузки задач", "error");
@@ -257,6 +255,7 @@ async function handleDrop(e) {
     if (response.success) {
       notify("Задача перемещена");
       await loadTasksScreen();
+      await render();
     } else {
       notify(
         "Ошибка: " + (response.error || "Не удалось переместить"),
@@ -279,6 +278,7 @@ async function completeTask(taskId) {
     if (response.success) {
       notify("Задача выполнена! 🎉");
       await loadTasksScreen();
+      await render();
     } else {
       notify("Ошибка: " + (response.error || "Не удалось завершить"), "error");
     }
@@ -298,6 +298,7 @@ async function reopenTask(taskId) {
     if (response.success) {
       notify("Задача возвращена в работу");
       await loadTasksScreen();
+      await render();
     } else {
       notify("Ошибка: " + (response.error || "Не удалось вернуть"), "error");
     }
@@ -315,6 +316,7 @@ async function deleteTask(taskId) {
     if (response.success) {
       notify("Задача удалена");
       await loadTasksScreen();
+      await render();
     } else {
       notify("Ошибка: " + (response.error || "Не удалось удалить"), "error");
     }
@@ -325,7 +327,7 @@ async function deleteTask(taskId) {
 
 function setTaskFilter(key, value) {
   state.taskFilter[key] = value;
-  render();
+  await render();
 }
 
 // ===== МОДАЛКИ =====
@@ -432,6 +434,7 @@ async function createTask() {
       closeModal();
       notify("Задача создана");
       await loadTasksScreen();
+      await render();
     } else {
       notify("Ошибка: " + (response.error || "Не удалось создать"), "error");
     }
@@ -500,6 +503,7 @@ async function updateTask(taskId) {
       closeModal();
       notify("Задача обновлена");
       await loadTasksScreen();
+      await render();
     } else {
       notify("Ошибка: " + (response.error || "Не удалось обновить"), "error");
     }

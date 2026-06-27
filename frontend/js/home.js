@@ -156,5 +156,5 @@ function renderProjectCard(p) {
 function openProject(id) {
   state.selectedProject = id;
   state.currentScreen = "projects";
-  render();
+  await render();
 }

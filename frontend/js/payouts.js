@@ -15,7 +15,6 @@ async function loadPayoutsScreen() {
     const finResponse = await api.getFinances();
     payoutsData = finResponse.finances || [];
 
-    render();
   } catch (error) {
     console.error("Error loading payouts:", error);
     notify("Ошибка загрузки данных", "error");
@@ -197,6 +196,7 @@ async function processPayment(financeId, userId) {
       closeModal();
       notify(`Выплачено ${formatMoney(amount)}`);
       await loadPayoutsScreen();
+      await render()
     } else {
       notify(
         "Ошибка: " + (response.error || "Не удалось выполнить выплату"),

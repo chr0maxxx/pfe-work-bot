@@ -138,6 +138,7 @@ async function closeProject(projectId) {
     if (response.success) {
       notify("Проект закрыт");
       await loadAllData();
+      await render()
       backToProjects();
     } else {
       notify("Ошибка: " + (response.error || "Не удалось закрыть"), "error");
@@ -149,7 +150,7 @@ async function closeProject(projectId) {
 
 function backToProjects() {
   state.selectedProject = null;
-  render();
+  await render();
 }
 
 function openCreateProjectModal() {
@@ -210,7 +211,7 @@ async function createProject() {
       closeModal();
       notify("Проект создан");
       await loadAllData();
-      render();
+      await render();
     } else {
       notify(
         "Ошибка: " + (response.error || "Не удалось создать проект"),

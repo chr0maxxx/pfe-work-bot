@@ -122,7 +122,7 @@ function showError(message) {
 
 // ===== RENDER =====
 
-function render() {
+async function render() {
   const user = state.currentUser;
   if (!user) return;
 
@@ -138,8 +138,8 @@ function render() {
   // Render navbar
   renderNavbar();
 
-  // Render screen
-  renderScreen();
+  // Render screen (await!)
+  await renderScreen();
 }
 
 function renderNavbar() {
@@ -161,8 +161,8 @@ function renderNavbar() {
     )
     .join("");
 
-  // Используем делегирование событий — навешиваем ОДИН обработчик на navbar
-  navbar.onclick = (e) => {
+  // Используем делегирование событий
+  navbar.onclick = async (e) => {
     const navItem = e.target.closest(".nav-item");
     if (!navItem) return;
 
@@ -177,10 +177,11 @@ function renderNavbar() {
 
     state.currentScreen = newScreen;
     state.selectedProject = null;
-    render();
+    await render(); // ← добавили await
   };
 }
-function renderScreen() {
+
+async function renderScreen() {
   const main = $("#main");
   if (!main) return;
 
@@ -192,27 +193,29 @@ function renderScreen() {
       html = renderHomeScreen();
       break;
     case "projects":
-      html = state.selectedProject ? renderProjectDetail() : renderProjects();
+      html = state.selectedProject
+        ? await renderProjectDetail()
+        : renderProjects();
       break;
     case "tasks":
-      loadTasksScreen();
+      await loadTasksScreen(); // ← ждём загрузку
       html = renderTasks();
       break;
     case "payments":
-      loadPayoutsScreen();
+      await loadPayoutsScreen(); // ← ждём загрузку
       html = renderPayments();
       break;
     case "finance":
-      loadFinancesScreen();
+      await loadFinancesScreen(); // ← ждём загрузку
       html = renderFinance();
-      // Навешиваем обработчики после рендера
       setTimeout(attachFinanceHandlers, 0);
       break;
     case "settings":
+      await loadSettingsScreen(); // ← ждём загрузку
       html = renderSettings();
       break;
     case "debug":
-      loadDebugScreen();
+      await loadDebugScreen(); // ← ждём загрузку
       html = renderDebug();
       break;
   }
@@ -241,7 +244,7 @@ function startPolling() {
 
       if (response.hasUpdates) {
         await loadAllData();
-        render();
+        await render();
         lastTimestamp = response.newTimestamp;
       }
     } catch (error) {

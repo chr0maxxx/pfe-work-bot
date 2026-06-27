@@ -14,7 +14,6 @@ async function loadDebugScreen() {
     }
 
     state.logs = response.logs || [];
-    render();
 
     // Запускаем автообновление
     startDebugAutoRefresh();
@@ -139,7 +138,7 @@ async function refreshLogs() {
   try {
     const response = await api.getLogs();
     state.logs = response.logs || [];
-    render();
+    await render();
 
     const timeEl = $("#lastUpdateTime");
     if (timeEl) {

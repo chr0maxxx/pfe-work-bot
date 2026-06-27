@@ -12,8 +12,6 @@ async function loadFinancesScreen() {
 
     const finResponse = await api.getFinances();
     financesData = finResponse.finances || [];
-
-    render();
   } catch (error) {
     console.error("Error loading finances:", error);
     notify("Ошибка загрузки данных", "error");
@@ -391,6 +389,7 @@ async function registerPayment() {
       closeModal();
       notify(`Поступление ${formatMoney(amount)} зарегистрировано`);
       await loadFinancesScreen();
+      await render()
     } else {
       notify(
         "Ошибка: " + (response.error || "Не удалось зарегистрировать"),

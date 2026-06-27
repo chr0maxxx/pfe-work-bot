@@ -9,6 +9,8 @@ const state = {
   autoRefresh: true,
 };
 
+let currentSettings = null;
+
 // Navigation config by role
 const navConfig = {
   manager: [
@@ -95,6 +97,7 @@ async function authenticate() {
   }
 
   state.currentUser = response.user;
+  currentSettings = response.settings;
 
   if (response.settings && response.settings.theme) {
     state.currentTheme = response.settings.theme;

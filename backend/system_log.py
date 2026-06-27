@@ -3,7 +3,8 @@ import logging
 import sys
 from datetime import datetime
 
-LOG_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'system.log')
+# Amvera persistent storage
+LOG_FILE = '/data/system.log'
 
 # Создаём директорию если её нет
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)

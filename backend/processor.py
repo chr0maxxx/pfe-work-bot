@@ -4,8 +4,8 @@ import os
 from datetime import datetime
 from typing import List, Dict, Optional, Any
 
-# Путь к папке с данными
-DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
+# Amvera persistent storage
+DATA_DIR = '/data'
 
 # Убедимся, что папка существует
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -16,23 +16,15 @@ def _get_file_path(filename: str) -> str:
     return os.path.join(DATA_DIR, filename)
 
 
-def read_json(filename: str) -> Dict:
-    """
-    Прочитать JSON файл
-    Возвращает словарь с данными
-    """
-    filepath = _get_file_path(filename)
-    
+def read_json(filename: str):
+    """Читает JSON файл"""
+    filepath = os.path.join(DATA_DIR, filename)
     if not os.path.exists(filepath):
         return {}
-    
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except json.JSONDecodeError:
-        return {}
-    except Exception as e:
-        print(f"Ошибка чтения {filename}: {e}")
+    except:
         return {}
 
 

@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
 
-LOG_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'activity.log')
+# Amvera persistent storage
+LOG_FILE = '/data/activity.log'
 
 def log_action(user_id: str, action: str, entity_id: str = '', details: str = ''):
     """Записать действие в лог"""

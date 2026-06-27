@@ -843,7 +843,7 @@ async def cmd_get_users(message: types.Message):
     if not await check_admin(message):
         return
     
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'users.json')
+    file_path = '/data/users.json'
     await send_file(message, file_path, "users.json")
 
 
@@ -853,7 +853,7 @@ async def cmd_get_projects(message: types.Message):
     if not await check_admin(message):
         return
     
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'projects.json')
+    file_path = '/data/projects.json'
     await send_file(message, file_path, "projects.json")
 
 
@@ -863,7 +863,7 @@ async def cmd_get_tasks(message: types.Message):
     if not await check_admin(message):
         return
     
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'tasks.json')
+    file_path = '/data/tasks.json'
     await send_file(message, file_path, "tasks.json")
 
 
@@ -873,7 +873,7 @@ async def cmd_get_fractions(message: types.Message):
     if not await check_admin(message):
         return
     
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'fractions.json')
+    file_path = '/data/fractions.json'
     await send_file(message, file_path, "fractions.json")
 
 
@@ -883,7 +883,7 @@ async def cmd_get_finances(message: types.Message):
     if not await check_admin(message):
         return
     
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'finances.json')
+    '/data/finances.json'
     await send_file(message, file_path, "finances.json")
 
 
@@ -893,7 +893,7 @@ async def cmd_get_requisites(message: types.Message):
     if not await check_admin(message):
         return
     
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'requisites.json')
+    file_path = '/data/requisites.json'
     await send_file(message, file_path, "requisites.json")
 
 
@@ -903,7 +903,7 @@ async def cmd_get_settings(message: types.Message):
     if not await check_admin(message):
         return
     
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'settings.json')
+    file_path = '/data/settings.json'
     await send_file(message, file_path, "settings.json")
 
 
@@ -913,7 +913,7 @@ async def cmd_get_sessions(message: types.Message):
     if not await check_admin(message):
         return
     
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'sessions.json')
+    file_path = '/data/sessions.json'
     await send_file(message, file_path, "sessions.json")
 
 
@@ -923,7 +923,7 @@ async def cmd_get_activity_log(message: types.Message):
     if not await check_admin(message):
         return
     
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'activity.log')
+    file_path = '/data/activity.log'
     
     # Создаём файл если его нет
     if not os.path.exists(file_path):
@@ -942,8 +942,7 @@ async def cmd_get_system_log(message: types.Message):
     if not await check_admin(message):
         return
     
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'system.log')
-    
+    file_path = '/data/system.log'
     # Создаём файл если его нет
     if not os.path.exists(file_path):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -963,7 +962,7 @@ async def cmd_get_all(message: types.Message):
     
     await message.answer("📦 Отправляю все файлы...")
     
-    data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
+    data_dir = '/data'
     files = [
     'users.json', 'projects.json', 'tasks.json', 'fractions.json',
     'finances.json', 'requisites.json', 'settings.json', 

@@ -26,6 +26,8 @@ env/
 data/*.json
 data/*.log
 data/sessions.json
+*.json
+*.log
 
 # НО! Оставь шаблоны файлов (если нужны)
 # !data/users.json.template

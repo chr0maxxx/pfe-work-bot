@@ -28,14 +28,123 @@ function renderProjects() {
     `;
 }
 
-function renderProjectDetail() {
-  return `
-        <button class="back-btn" onclick="backToProjects()">← Назад</button>
-        <div class="empty-state">
-            <div class="empty-state-icon">📁</div>
-            <div>Детали проекта (в разработке)</div>
-        </div>
-    `;
+async function renderProjectDetail() {
+  const projectId = state.selectedProject;
+  if (!projectId) return '<div class="empty-state">Проект не выбран</div>';
+
+  try {
+    // Загружаем детали проекта
+    const projectData = await api.getProject(projectId);
+    const project = projectData.project;
+    const fractions = projectData.fractions;
+    const progress = projectData.progress;
+
+    // Загружаем задачи проекта
+    const tasksData = await api.getTasks(projectId);
+    const tasks = tasksData.tasks || [];
+
+    const user = state.currentUser;
+    const canEdit = user.role === "manager" || user.role === "admin";
+
+    const upcoming = tasks.filter((t) => t.column === "backlog");
+    const current = tasks.filter((t) => t.column === "current");
+    const done = tasks.filter((t) => t.column === "done");
+
+    const totalCost = tasks.reduce((s, t) => s + t.cost, 0);
+    const remaining = fractions.developers_pool - totalCost;
+
+    return `
+            <button class="back-btn" onclick="backToProjects()">← Назад</button>
+            
+            <div class="project-detail-header">
+                <div>
+                    <div class="project-title" style="font-size:22px">${project.name}</div>
+                    <div class="project-client">${project.client_name || "Не указан"}</div>
+                </div>
+                <div>
+                    ${project.status === "active" || project.status === "in_progress" ? '<span class="badge badge-info">В работе</span>' : '<span class="badge badge-success">Завершён</span>'}
+                </div>
+            </div>
+            
+            <div class="project-stats">
+                <div class="project-stat">
+                    <div class="project-stat-label">Бюджет</div>
+                    <div class="project-stat-value">${formatMoney(project.total_budget)}</div>
+                </div>
+                <div class="project-stat">
+                    <div class="project-stat-label">Пул разрабов</div>
+                    <div class="project-stat-value">${formatMoney(fractions.developers_pool)}</div>
+                </div>
+                <div class="project-stat">
+                    <div class="project-stat-label">Распределено</div>
+                    <div class="project-stat-value">${formatMoney(totalCost)}</div>
+                </div>
+                <div class="project-stat">
+                    <div class="project-stat-label">Осталось</div>
+                    <div class="project-stat-value" style="color:${remaining < 0 ? "#ff4444" : "var(--accent-1)"}">${formatMoney(remaining)}</div>
+                </div>
+            </div>
+            
+            <div style="font-size:13px;margin-bottom:8px">Прогресс: ${progress.progress_percent}% (${progress.done_count}/${progress.total_count} задач)</div>
+            <div class="progress-bar" style="margin-bottom:16px;height:14px">
+                <div class="progress-fill" style="width:${progress.progress_percent}%"></div>
+            </div>
+            
+            ${project.deadline ? `<div class="project-deadline ${isOverdue(project.deadline) ? "overdue" : ""}" style="margin-bottom:20px">📅 Дедлайн: ${formatDate(project.deadline)}</div>` : ""}
+            
+            ${project.notes ? `<div style="margin-bottom:20px;padding:12px;background:var(--glass-bg);border-radius:12px;font-size:13px;color:var(--text-dim)"><strong>Примечания:</strong> ${project.notes}</div>` : ""}
+            
+            ${renderTaskBlock("📥 Предстоящие", upcoming, "backlog", project.id)}
+            ${renderTaskBlock("🔄 Текущие", current, "current", project.id)}
+            ${renderTaskBlock("✅ Выполненные", done, "done", project.id)}
+            
+            ${
+              canEdit
+                ? `
+                <div class="action-row" style="margin-top:20px">
+                    <button class="btn btn-secondary" onclick="openCreateTaskModalForProject('${project.id}')">➕ Создать задачу</button>
+                    ${project.status === "active" || project.status === "in_progress" ? `<button class="btn btn-danger" onclick="closeProject('${project.id}')">🗑️ Закрыть проект</button>` : ""}
+                </div>
+            `
+                : ""
+            }
+        `;
+  } catch (error) {
+    console.error("Error loading project detail:", error);
+    return `<div class="empty-state">Ошибка загрузки проекта</div>`;
+  }
+}
+
+function openCreateTaskModalForProject(projectId) {
+  state.taskFilter.project = projectId;
+  openCreateTaskModal();
+
+  // Устанавливаем выбранный проект
+  setTimeout(() => {
+    const select = $("#newTaskProject");
+    if (select) select.value = projectId;
+    updateRemainingAmount();
+  }, 100);
+}
+
+async function closeProject(projectId) {
+  if (!confirm("Закрыть проект? Это действие нельзя отменить.")) return;
+
+  try {
+    const response = await api.updateProject(projectId, {
+      status: "closed",
+    });
+
+    if (response.success) {
+      notify("Проект закрыт");
+      await loadAllData();
+      backToProjects();
+    } else {
+      notify("Ошибка: " + (response.error || "Не удалось закрыть"), "error");
+    }
+  } catch (error) {
+    notify("Ошибка: " + error.message, "error");
+  }
 }
 
 function backToProjects() {

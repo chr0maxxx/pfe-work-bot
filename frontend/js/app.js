@@ -94,8 +94,8 @@ async function authenticate() {
 }
 
 async function loadAllData() {
-  // Load projects, tasks, finances, etc.
   try {
+    // Загружаем проекты
     const projectsData = await api.getProjects();
     state.projects = projectsData.projects || [];
   } catch (e) {
@@ -103,7 +103,14 @@ async function loadAllData() {
     state.projects = [];
   }
 
-  // Load other data as needed
+  try {
+    // Загружаем задачи
+    const tasksData = await api.getTasks();
+    state.tasks = tasksData.tasks || [];
+  } catch (e) {
+    console.error("Error loading tasks:", e);
+    state.tasks = [];
+  }
 }
 
 function showError(message) {
@@ -156,7 +163,16 @@ function renderNavbar() {
 
   navbar.querySelectorAll(".nav-item").forEach((el) => {
     el.addEventListener("click", () => {
-      state.currentScreen = el.dataset.screen;
+      const newScreen = el.dataset.screen;
+
+      // Останавливаем автообновление отладки, если уходим с экрана
+      if (state.currentScreen === "debug" && newScreen !== "debug") {
+        if (typeof stopDebugAutoRefresh === "function") {
+          stopDebugAutoRefresh();
+        }
+      }
+
+      state.currentScreen = newScreen;
       state.selectedProject = null;
       render();
     });
@@ -178,6 +194,8 @@ function renderScreen() {
       html = state.selectedProject ? renderProjectDetail() : renderProjects();
       break;
     case "tasks":
+      // Загружаем данные задач асинхронно
+      loadTasksScreen();
       html = renderTasks();
       break;
     case "payments":
@@ -190,6 +208,7 @@ function renderScreen() {
       html = renderSettings();
       break;
     case "debug":
+      loadDebugScreen();
       html = renderDebug();
       break;
   }

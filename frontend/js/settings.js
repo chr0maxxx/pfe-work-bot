@@ -1,121 +1,52 @@
-// Экран настроек
+// ===== SETTINGS SCREEN =====
 
-async function loadSettingsScreen() {
-  console.log("Loading settings screen...");
+function renderSettings() {
+  const user = state.currentUser;
+  const isAdmin = user.role === "admin";
 
-  const content = document.getElementById("screen-settings");
-  const userRole = currentUser?.role;
-
-  let requisitesSection = "";
-
-  // Для админа - возможность редактировать реквизиты всех
-  if (userRole === "admin") {
-    requisitesSection = `
+  return `
+        <div class="screen-title">⚙️ Настройки</div>
+        
+        <div class="settings-section">
+            <div class="settings-title">🎨 Цветовое оформление</div>
+            <div class="theme-grid">
+                ${renderThemeOption("whiskey", "Виски 🥃", ["#150C0C", "#34150F", "#D39858", "#85431E"])}
+                ${renderThemeOption("vodka", "Водка 🍸", ["#0d0e20", "#2d1c7f", "#7546e8", "#c8b3f6"])}
+                ${renderThemeOption("mojito", "Мохито 🍃", ["#0b453a", "#2fa98c", "#00df81", "#aac8c4"])}
+                ${renderThemeOption("nemiroff", "Немирофф 🍷", ["#1e1e27", "#28242a", "#df0139", "#512376"])}
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <div class="settings-title">💳 Мои реквизиты</div>
+            <div class="empty-state">
+                <div>Реквизиты (в разработке)</div>
+            </div>
+        </div>
+        
+        ${
+          isAdmin
+            ? `
             <div class="settings-section">
-                <h3>👥 Реквизиты всех участников</h3>
-                <div class="placeholder-message">
-                    Здесь будут реквизиты и описания всех участников с возможностью редактирования
+                <div class="settings-title">🏦 Реквизиты общака</div>
+                <div class="empty-state">
+                    <div>Реквизиты общака (в разработке)</div>
                 </div>
             </div>
-        `;
-  }
-  // Для остальных - только свои реквизиты
-  else {
-    requisitesSection = `
-            <div class="settings-section">
-                <h3>💳 Мои реквизиты</h3>
-                <div class="form-group">
-                    <label class="form-label">Реквизиты для перевода</label>
-                    <input type="text" class="form-input" placeholder="Номер карты, телефон, email...">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Описание (комментарий для Льва)</label>
-                    <input type="text" class="form-input" placeholder="Например: На Сбербанк">
-                </div>
-                <button class="btn btn-primary">Сохранить</button>
-            </div>
-        `;
-  }
+        `
+            : ""
+        }
+    `;
+}
 
-  content.innerHTML = `
-        <div class="settings-container">
-            <h2>⚙️ Настройки</h2>
-            
-            <!-- Цветовое оформление -->
-            <div class="settings-section">
-                <h3>🎨 Цветовое оформление</h3>
-                <div class="form-group">
-                    <label class="form-label">Акцентный цвет</label>
-                    <select class="form-select" id="setting-accent-color">
-                        <option value="blue">Синий</option>
-                        <option value="yellow">Жёлтый</option>
-                        <option value="pink">Розовый</option>
-                        <option value="green">Зелёный</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" id="btn-save-theme">Применить</button>
+function renderThemeOption(id, label, colors) {
+  const isActive = state.currentTheme === id;
+  return `
+        <div class="theme-option ${isActive ? "active" : ""}" onclick="setTheme('${id}')">
+            <div class="theme-preview">
+                ${colors.map((c) => `<div class="theme-dot" style="background:${c}"></div>`).join("")}
             </div>
-            
-            <!-- Реквизиты -->
-            ${requisitesSection}
-            
-            <!-- Общак (только для админа) -->
-            ${
-              userRole === "admin"
-                ? `
-                <div class="settings-section">
-                    <h3>🏦 Реквизиты общака</h3>
-                    <div class="form-group">
-                        <label class="form-label">Реквизиты общего котла</label>
-                        <input type="text" class="form-input" placeholder="Номер счёта, карта...">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Описание</label>
-                        <input type="text" class="form-input" placeholder="Например: Сбербанк бизнес">
-                    </div>
-                    <button class="btn btn-primary">Сохранить</button>
-                </div>
-            `
-                : ""
-            }
+            <div>${label}</div>
         </div>
     `;
-
-  // Обработчик смены цвета
-  document
-    .getElementById("btn-save-theme")
-    .addEventListener("click", async () => {
-      const newColor = document.getElementById("setting-accent-color").value;
-
-      try {
-        const response = await api.updateSettings({ accent_color: newColor });
-
-        if (response.success) {
-          // Правильно обновляем классы body
-          const body = document.body;
-          const currentClasses = body.className.split(" ");
-          const newClasses = currentClasses
-            .filter((cls) => !cls.startsWith("accent-")) // Убираем старый акцент
-            .concat(`accent-${newColor}`); // Добавляем новый
-
-          body.className = newClasses.join(" ");
-
-          // Обновляем глобальные настройки
-          if (currentSettings) {
-            currentSettings.accent_color = newColor;
-          }
-
-          // Убираем alert, используем более мягкое уведомление
-          showNotification("Цвет изменён!", "success");
-        } else {
-          showNotification(
-            "Ошибка: " + (response.error || "Не удалось сохранить"),
-            "error",
-          );
-        }
-      } catch (error) {
-        console.error("Error saving settings:", error);
-        showNotification("Ошибка: " + error.message, "error");
-      }
-    });
 }

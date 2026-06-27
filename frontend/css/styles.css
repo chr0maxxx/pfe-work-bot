@@ -3,193 +3,212 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
-:root {
-  /* Цветовая палитра (dark theme по умолчанию) */
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #2a2a2a;
-  --bg-tertiary: #3a3a3a;
-  --text-primary: #ffffff;
-  --text-secondary: #b0b0b0;
-  --accent: #4a90e2;
-  --accent-hover: #357abd;
-  --success: #50c878;
-  --warning: #ffa500;
-  --error: #ff4444;
-  --border: #3a3a3a;
-
-  /* Размеры */
-  --header-height: 60px;
-  --navbar-height: 70px;
-  --border-radius: 8px;
-  --spacing: 1rem;
-}
-
+html,
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
-    Cantarell, sans-serif;
+  font-family: "Century Gothic", "Futura", "Avantgarde", sans-serif;
   background: var(--bg-primary);
-  color: var(--text-primary);
+  color: var(--text-light);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  font-size: 14px;
+  overflow-x: hidden;
+  letter-spacing: 0.3px;
   line-height: 1.5;
 }
 
-/* ===== LAYOUT ===== */
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+body {
+  background: linear-gradient(
+    -45deg,
+    var(--bg-primary),
+    var(--bg-secondary),
+    var(--accent-2),
+    var(--bg-secondary)
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 20s ease infinite;
+  position: relative;
 }
 
-.header {
-  background: var(--bg-secondary);
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  border-bottom: 1px solid var(--border);
-  height: var(--header-height);
-  position: sticky;
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ===== PARTICLES ===== */
+.particles {
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
 }
 
-.content {
-  flex: 1;
-  padding: var(--spacing);
-  overflow-y: auto;
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--accent-1);
+  border-radius: 50%;
+  opacity: 0.3;
+  box-shadow: 0 0 10px var(--accent-1);
+  animation: float linear infinite;
 }
 
-.navbar {
-  background: var(--bg-secondary);
-  padding: 0.5rem;
-  display: flex;
-  justify-content: space-around;
-  border-top: 1px solid var(--border);
-  height: var(--navbar-height);
-  position: sticky;
-  bottom: 0;
-  z-index: 100;
+@keyframes float {
+  0% {
+    transform: translateY(100vh) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.4;
+  }
+  90% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-100px) translateX(50px);
+    opacity: 0;
+  }
+}
+
+/* ===== APP CONTAINER ===== */
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 90px;
+}
+
+@media (min-width: 768px) {
+  .app {
+    max-width: 700px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .app {
+    max-width: 900px;
+  }
 }
 
 /* ===== HEADER ===== */
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--accent);
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 16px 20px;
+  background: rgba(21, 12, 12, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.2rem;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
 }
 
 .user-info {
-  flex: 1;
+  min-width: 0;
 }
 
 .user-name {
+  font-size: 16px;
   font-weight: 600;
-  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-role {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  font-size: 12px;
+  color: var(--text-dim);
 }
 
-/* ===== NAVBAR ===== */
-.nav-item {
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.85rem;
+/* ===== MAIN CONTENT ===== */
+.main {
+  padding: 20px;
+  animation: fadeIn 0.4s ease;
 }
 
-.nav-item:hover {
-  background: var(--bg-tertiary);
-}
-
-.nav-item.active {
-  background: var(--accent);
-  color: white;
-}
-
-.nav-icon {
-  font-size: 1.5rem;
-}
-
-/* ===== SCREENS ===== */
-.screen {
-  display: none;
-}
-
-.screen.active {
-  display: block;
-}
-
-/* ===== LOADING ===== */
-.loading {
-  text-align: center;
-  padding: 2rem;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--bg-tertiary);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* ===== ERROR ===== */
-.error {
-  background: var(--error);
-  color: white;
-  padding: 1rem;
-  border-radius: var(--border-radius);
-  margin: 1rem;
+.screen-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-/* ===== EMPTY STATE ===== */
-.empty-state {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--text-secondary);
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 24px 0 14px;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.empty-state-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-1);
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .nav-item {
-    padding: 0.5rem 1rem;
+@media (max-width: 380px) {
+  .main {
+    padding: 14px;
   }
-
-  .nav-icon {
-    font-size: 1.2rem;
+  .header {
+    padding: 12px 14px;
   }
 }

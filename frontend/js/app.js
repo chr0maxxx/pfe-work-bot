@@ -1,47 +1,65 @@
-// Основная логика приложения
+// ===== APP STATE & INIT =====
 
-// Глобальные переменные
-let currentUser = null;
-let currentSettings = null;
-let currentScreen = "home";
+const state = {
+  currentUser: null,
+  currentScreen: "home",
+  currentTheme: localStorage.getItem("theme") || "whiskey",
+  selectedProject: null,
+  taskFilter: { project: "all", assignee: "all" },
+  autoRefresh: true,
+};
 
-// Инициализация Telegram WebApp
-const tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.ready();
-  tg.expand();
-  console.log("Telegram WebApp initialized");
-}
+// Navigation config by role
+const navConfig = {
+  manager: [
+    { id: "home", icon: "🏠", label: "Главная" },
+    { id: "projects", icon: "📁", label: "Проекты" },
+    { id: "payments", icon: "💳", label: "Выплаты" },
+    { id: "finance", icon: "💰", label: "Финансы" },
+    { id: "settings", icon: "⚙️", label: "Настройки" },
+  ],
+  developer: [
+    { id: "home", icon: "🏠", label: "Главная" },
+    { id: "tasks", icon: "📋", label: "Задачи" },
+    { id: "finance", icon: "💰", label: "Финансы" },
+    { id: "settings", icon: "⚙️", label: "Настройки" },
+  ],
+  lead_developer: [
+    { id: "home", icon: "🏠", label: "Главная" },
+    { id: "tasks", icon: "📋", label: "Задачи" },
+    { id: "finance", icon: "💰", label: "Финансы" },
+    { id: "settings", icon: "⚙️", label: "Настройки" },
+  ],
+  admin: [
+    { id: "home", icon: "🏠", label: "Главная" },
+    { id: "projects", icon: "📁", label: "Проекты" },
+    { id: "tasks", icon: "📋", label: "Задачи" },
+    { id: "finance", icon: "💰", label: "Финансы" },
+    { id: "settings", icon: "⚙️", label: "Настройки" },
+    { id: "debug", icon: "🔍", label: "Отладка" },
+  ],
+};
 
-// ===== ИНИЦИАЛИЗАЦИЯ =====
+// ===== INITIALIZATION =====
 
 async function init() {
   console.log("=== INIT START ===");
 
   try {
-    console.log("Step 1: Authenticating...");
+    // Apply theme
+    document.body.dataset.theme = state.currentTheme;
+
+    // Create particles
+    createParticles();
+
+    // Authenticate
     await authenticate();
-    console.log("Step 1: Auth success, user:", currentUser);
 
-    console.log("Step 2: Loading user data...");
-    await loadUserData();
-    console.log("Step 2: User data loaded");
+    // Render
+    render();
 
-    console.log("Step 3: Applying settings...");
-    applySettings(currentSettings);
-    console.log("Step 3: Settings applied");
-
-    console.log("Step 4: Initializing navigation...");
-    initNavigation();
-    console.log("Step 4: Navigation initialized");
-
-    console.log("Step 5: Showing first screen...");
-    showScreen("home");
-    console.log("Step 5: Screen shown");
-
-    console.log("Step 6: Starting polling...");
+    // Start polling
     startPolling();
-    console.log("Step 6: Polling started");
 
     console.log("=== INIT COMPLETE ===");
   } catch (error) {
@@ -50,17 +68,17 @@ async function init() {
   }
 }
 
-// ===== АВТОРИЗАЦИЯ =====
-
 async function authenticate() {
-  console.log("Authenticating...");
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
 
   const initData = tg?.initData || "";
 
   if (!initData) {
-    throw new Error(
-      "Telegram initData is missing. Please open via Telegram bot.",
-    );
+    throw new Error("Telegram initData is missing");
   }
 
   const response = await api.authTelegram(initData);
@@ -69,204 +87,138 @@ async function authenticate() {
     throw new Error(response.detail || "Authentication failed");
   }
 
-  currentUser = response.user;
-  currentSettings = response.settings;
+  state.currentUser = response.user;
 
-  console.log("Authenticated as:", currentUser.name, "role:", currentUser.role);
+  // Load additional data
+  await loadAllData();
 }
 
-// ===== ЗАГРУЗКА ДАННЫХ =====
-
-async function loadUserData() {
-  console.log("Loading user data...");
-  const data = await api.getMe();
-
-  if (data.error) {
-    throw new Error(data.error);
+async function loadAllData() {
+  // Load projects, tasks, finances, etc.
+  try {
+    const projectsData = await api.getProjects();
+    state.projects = projectsData.projects || [];
+  } catch (e) {
+    console.error("Error loading projects:", e);
+    state.projects = [];
   }
 
-  currentUser = data.user;
-  currentSettings = data.settings;
+  // Load other data as needed
 }
 
-// ===== ПРИМЕНЕНИЕ НАСТРОЕК =====
-
-function applySettings(settings) {
-  console.log("Applying settings:", settings);
-
-  if (!settings) return;
-
-  const body = document.body;
-  body.className = "";
-
-  body.classList.add(`theme-${settings.theme || "dark"}`);
-  body.classList.add(`accent-${settings.accent_color || "blue"}`);
-  body.classList.add(`font-${settings.font_size || "medium"}`);
-
-  if (settings.disable_glow) body.classList.add("no-glow");
-  if (settings.disable_shadows) body.classList.add("no-shadow");
-
-  updateUI();
-}
-
-function updateUI() {
-  if (!currentUser) return;
-
-  document.getElementById("userName").textContent = currentUser.name;
-  document.getElementById("userRole").textContent = getRoleName(
-    currentUser.role,
-  );
-  document.getElementById("avatar").textContent = currentUser.name
-    .charAt(0)
-    .toUpperCase();
-}
-
-// ===== НАВИГАЦИЯ =====
-
-function initNavigation() {
-  console.log("Initializing navigation...");
-
-  const navbar = document.getElementById("navbar");
-
-  // Определяем пункты навбара в зависимости от роли
-  let navItems = [];
-
-  if (currentUser.role === "manager") {
-    // Лев (менеджер)
-    navItems = [
-      { screen: "home", icon: "🏠", label: "Главная" },
-      { screen: "projects", icon: "📁", label: "Проекты" },
-      { screen: "payouts", icon: "💳", label: "Выплаты" },
-      { screen: "finances", icon: "💰", label: "Финансы" },
-      { screen: "settings", icon: "⚙️", label: "Настройки" },
-    ];
-  } else if (
-    currentUser.role === "lead_developer" ||
-    currentUser.role === "developer"
-  ) {
-    // Макс рабочий, Андрей (разработчики)
-    navItems = [
-      { screen: "home", icon: "🏠", label: "Главная" },
-      { screen: "tasks", icon: "📋", label: "Задачи" },
-      { screen: "finances", icon: "💰", label: "Финансы" },
-      { screen: "settings", icon: "⚙️", label: "Настройки" },
-    ];
-  } else if (currentUser.role === "admin") {
-    // Макс администратор
-    navItems = [
-      { screen: "home", icon: "🏠", label: "Главная" },
-      { screen: "projects", icon: "📁", label: "Проекты" },
-      { screen: "tasks", icon: "📋", label: "Задачи" },
-      { screen: "finances", icon: "💰", label: "Финансы" },
-      { screen: "settings", icon: "⚙️", label: "Настройки" },
-      { screen: "debug", icon: "🔍", label: "Отладка" },
-    ];
+function showError(message) {
+  const content = $("#main");
+  if (content) {
+    content.innerHTML = `<div class="error" style="padding:20px;text-align:center;">${message}</div>`;
   }
+}
 
-  // Рендерим навбар
-  navbar.innerHTML = navItems
+// ===== RENDER =====
+
+function render() {
+  const user = state.currentUser;
+  if (!user) return;
+
+  // Update header
+  const avatar = $("#headerAvatar");
+  const name = $("#headerName");
+  const role = $("#headerRole");
+
+  if (avatar) avatar.textContent = user.name.charAt(0).toUpperCase();
+  if (name) name.textContent = user.name;
+  if (role) role.textContent = getRoleName(user.role);
+
+  // Render navbar
+  renderNavbar();
+
+  // Render screen
+  renderScreen();
+}
+
+function renderNavbar() {
+  const user = state.currentUser;
+  if (!user) return;
+
+  const nav = navConfig[user.role] || navConfig.developer;
+  const navbar = $("#navbar");
+  if (!navbar) return;
+
+  navbar.innerHTML = nav
     .map(
-      (item, index) => `
-        <div class="nav-item ${index === 0 ? "active" : ""}" data-screen="${item.screen}">
+      (item) => `
+        <div class="nav-item ${state.currentScreen === item.id ? "active" : ""}" data-screen="${item.id}">
             <div class="nav-icon">${item.icon}</div>
-            <div>${item.label}</div>
+            <div class="nav-label">${item.label}</div>
         </div>
     `,
     )
     .join("");
 
-  // Добавляем обработчики
-  navbar.querySelectorAll(".nav-item").forEach((item) => {
-    item.addEventListener("click", () => {
-      const screen = item.dataset.screen;
-      showScreen(screen);
-
-      navbar
-        .querySelectorAll(".nav-item")
-        .forEach((i) => i.classList.remove("active"));
-      item.classList.add("active");
+  navbar.querySelectorAll(".nav-item").forEach((el) => {
+    el.addEventListener("click", () => {
+      state.currentScreen = el.dataset.screen;
+      state.selectedProject = null;
+      render();
     });
   });
 }
 
-function showScreen(screenName) {
-  console.log("Showing screen:", screenName);
+function renderScreen() {
+  const main = $("#main");
+  if (!main) return;
 
-  // Останавливаем автообновление отладки, если уходим с экрана
-  if (currentScreen === "debug" && screenName !== "debug") {
-    if (typeof stopDebugAutoRefresh === "function") {
-      stopDebugAutoRefresh();
-    }
+  const screen = state.currentScreen;
+  let html = "";
+
+  switch (screen) {
+    case "home":
+      html = renderHomeScreen();
+      break;
+    case "projects":
+      html = state.selectedProject ? renderProjectDetail() : renderProjects();
+      break;
+    case "tasks":
+      html = renderTasks();
+      break;
+    case "payments":
+      html = renderPayments();
+      break;
+    case "finance":
+      html = renderFinance();
+      break;
+    case "settings":
+      html = renderSettings();
+      break;
+    case "debug":
+      html = renderDebug();
+      break;
   }
 
-  currentScreen = screenName;
-
-  // Скрываем все экраны
-  document.querySelectorAll(".screen").forEach((screen) => {
-    screen.classList.remove("active");
-  });
-
-  // Показываем нужный экран
-  const screen = document.getElementById(`screen-${screenName}`);
-  if (screen) {
-    screen.classList.add("active");
-    loadScreenData(screenName);
-  } else {
-    console.error("Screen not found:", screenName);
-  }
+  main.innerHTML = html;
 }
 
-async function loadScreenData(screenName) {
-  console.log("Loading screen data:", screenName);
-
-  try {
-    switch (screenName) {
-      case "home":
-        if (typeof loadHomeScreen === "function") await loadHomeScreen();
-        break;
-      case "projects":
-        if (typeof loadProjectsScreen === "function")
-          await loadProjectsScreen();
-        break;
-      case "tasks":
-        if (typeof loadTasksScreen === "function") await loadTasksScreen();
-        break;
-      case "payouts":
-        if (typeof loadPayoutsScreen === "function") await loadPayoutsScreen();
-        break;
-      case "finances":
-        if (typeof loadFinancesScreen === "function")
-          await loadFinancesScreen();
-        break;
-      case "settings":
-        if (typeof loadSettingsScreen === "function")
-          await loadSettingsScreen();
-        break;
-      case "debug":
-        if (typeof loadDebugScreen === "function") await loadDebugScreen();
-        break;
-      default:
-        console.error("Unknown screen:", screenName);
-    }
-  } catch (error) {
-    console.error("Error loading screen:", screenName, error);
-  }
+function getRoleName(role) {
+  const roles = {
+    admin: "Администратор",
+    lead_developer: "Lead Developer",
+    developer: "Разработчик",
+    manager: "Менеджер",
+  };
+  return roles[role] || role;
 }
 
 // ===== POLLING =====
 
 let lastTimestamp = null;
 
-async function startPolling() {
-  console.log("Starting polling (every 30 seconds)...");
-
+function startPolling() {
   setInterval(async () => {
     try {
       const response = await api.getUpdates(lastTimestamp);
 
       if (response.hasUpdates) {
-        console.log("Updates received, reloading screen...");
-        await loadScreenData(currentScreen);
+        await loadAllData();
+        render();
         lastTimestamp = response.newTimestamp;
       }
     } catch (error) {
@@ -275,85 +227,17 @@ async function startPolling() {
   }, 30000);
 }
 
-// ===== УТИЛИТЫ =====
-
-function showError(message) {
-  console.error("Showing error:", message);
-  const content = document.getElementById("content");
-  content.innerHTML = `<div class="error">${message}</div>`;
-}
-
-function getRoleName(role) {
-  const roles = {
-    admin: "Администратор",
-    lead_developer: "Ведущий разработчик",
-    developer: "Разработчик",
-    manager: "Менеджер",
-  };
-  return roles[role] || role;
-}
-
-// ===== УВЕДОМЛЕНИЯ =====
-
-function showNotification(message, type = "info") {
-  // Создаём элемент уведомления
-  const notification = document.createElement("div");
-  notification.className = `notification notification-${type}`;
-  notification.textContent = message;
-
-  // Стили для уведомления
-  notification.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        padding: 1rem 1.5rem;
-        background: var(--bg-secondary);
-        border-left: 4px solid ${type === "success" ? "var(--success)" : type === "error" ? "var(--error)" : "var(--accent)"};
-        border-radius: var(--border-radius);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        z-index: 10000;
-        animation: slideIn 0.3s ease-out;
-        max-width: 300px;
-    `;
-
-  // Добавляем анимацию
-  const style = document.createElement("style");
-  style.textContent = `
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
-    `;
-  document.head.appendChild(style);
-
-  document.body.appendChild(notification);
-
-  // Автоматически убираем через 3 секунды
-  setTimeout(() => {
-    notification.style.animation = "slideOut 0.3s ease-out";
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
-}
-
-// ===== ЗАПУСК =====
+// ===== EVENT LISTENERS =====
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM loaded, starting init...");
+  // Modal overlay close
+  const overlay = $("#modalOverlay");
+  if (overlay) {
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeModal();
+    });
+  }
+
+  // Init app
   init();
 });

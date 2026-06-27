@@ -52,3 +52,6 @@ Thumbs.db
 # ===== БЭКАПЫ =====
 *.bak
 *.backup
+backup*_raw/
+
+newdesign*.html

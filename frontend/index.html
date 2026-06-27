@@ -3,100 +3,63 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Studio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WebStudio Manager</title>
+
+    <!-- Font -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/century-gothic@5.0.0/index.css">
 
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <!-- Favicon -->
     <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M20 80 L35 20 L50 60 L65 20 L80 80' stroke='%234a90e2' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M20 80 L35 20 L50 60 L65 20 L80 80' stroke='%23D39858' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="/static/css/themes.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="/static/css/components.css">
 </head>
 
-<body class="theme-dark accent-blue font-medium">
-    <div class="app-container">
+<body data-theme="whiskey">
+    <div class="particles" id="particles"></div>
+
+    <div class="app">
         <!-- Header -->
-        <div class="header">
-            <div class="avatar" id="avatar">?</div>
-            <div class="user-info">
-                <div class="user-name" id="userName">Загрузка...</div>
-                <div class="user-role" id="userRole">...</div>
-            </div>
-        </div>
-
-        <!-- Content -->
-        <div class="content" id="content">
-            <!-- ===== ГЛАВНАЯ ===== -->
-            <div class="screen active" id="screen-home">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div>Загрузка...</div>
+        <header class="header">
+            <div class="header-user">
+                <div class="avatar" id="headerAvatar">?</div>
+                <div class="user-info">
+                    <div class="user-name" id="headerName">Загрузка...</div>
+                    <div class="user-role" id="headerRole">...</div>
                 </div>
             </div>
+        </header>
 
-            <!-- ===== ПРОЕКТЫ (Лев, Админ) ===== -->
-            <div class="screen" id="screen-projects">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div>Загрузка...</div>
-                </div>
+        <!-- Main content -->
+        <main class="main" id="main">
+            <div class="empty-state">
+                <div class="loading-spinner"></div>
+                <div>Загрузка...</div>
             </div>
+        </main>
 
-            <!-- ===== ЗАДАЧИ (Макс, Андрей, Админ) ===== -->
-            <div class="screen" id="screen-tasks">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div>Загрузка...</div>
-                </div>
-            </div>
-
-            <!-- ===== ВЫПЛАТЫ (Лев) ===== -->
-            <div class="screen" id="screen-payouts">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div>Загрузка...</div>
-                </div>
-            </div>
-
-            <!-- ===== ФИНАНСЫ ===== -->
-            <div class="screen" id="screen-finances">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div>Загрузка...</div>
-                </div>
-            </div>
-
-            <!-- ===== НАСТРОЙКИ ===== -->
-            <div class="screen" id="screen-settings">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div>Загрузка...</div>
-                </div>
-            </div>
-
-            <!-- ===== ОТЛАДКА (Админ) ===== -->
-            <div class="screen" id="screen-debug">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div>Загрузка...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Navbar (динамически заполняется через JS) -->
-        <div class="navbar" id="navbar">
-            <!-- Заполняется динамически -->
-        </div>
+        <!-- Bottom navbar -->
+        <nav class="navbar" id="navbar"></nav>
     </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal"></div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="notifications" id="notifications"></div>
 
     <!-- JavaScript -->
     <script src="/static/js/api.js"></script>
+    <script src="/static/js/ui.js"></script>
     <script src="/static/js/home.js"></script>
     <script src="/static/js/projects.js"></script>
     <script src="/static/js/tasks.js"></script>

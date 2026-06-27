@@ -1,19 +1,21 @@
-// API клиент для работы с backend
-
 class API {
   constructor() {
     this.baseUrl = "";
+    // Получаем session_id из localStorage
     this.sessionId = localStorage.getItem("session_id") || null;
   }
 
+  // Сохранить session_id
   setSessionId(sessionId) {
     this.sessionId = sessionId;
     localStorage.setItem("session_id", sessionId);
   }
 
+  // Базовый метод для запросов
   async request(endpoint, options = {}) {
     let url = `${this.baseUrl}${endpoint}`;
 
+    // Добавляем session_id как query параметр
     if (this.sessionId) {
       const separator = url.includes("?") ? "&" : "?";
       url += `${separator}session_id=${this.sessionId}`;
@@ -30,9 +32,12 @@ class API {
     try {
       const response = await fetch(url, config);
 
+      // Проверяем, что ответ — JSON, а не HTML
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned HTML instead of JSON");
+        throw new Error(
+          "Server returned HTML instead of JSON. Backend may not be running.",
+        );
       }
 
       const data = await response.json();
@@ -66,15 +71,12 @@ class API {
     });
   }
 
-  async delete(endpoint) {
-    return this.request(endpoint, { method: "DELETE" });
-  }
-
   // ===== AUTH =====
 
   async authTelegram(initData) {
     const response = await this.post("/api/auth/telegram", { initData });
 
+    // Сохраняем session_id
     if (response.success && response.session_id) {
       this.setSessionId(response.session_id);
     }
@@ -92,13 +94,11 @@ class API {
     return response;
   }
 
-  // ===== USER =====
+  // ===== Остальные методы (без изменений) =====
 
   async getMe() {
     return this.get("/api/me");
   }
-
-  // ===== PROJECTS =====
 
   async getProjects() {
     return this.get("/api/projects");
@@ -115,8 +115,6 @@ class API {
   async updateProject(projectId, data) {
     return this.patch(`/api/projects/${projectId}`, data);
   }
-
-  // ===== TASKS =====
 
   async getTasks(projectId = null) {
     const params = projectId ? `?project_id=${projectId}` : "";
@@ -136,10 +134,8 @@ class API {
   }
 
   async deleteTask(taskId) {
-    return this.delete(`/api/tasks/${taskId}`);
+    return this.request(`/api/tasks/${taskId}`, { method: "DELETE" });
   }
-
-  // ===== FINANCES =====
 
   async getFinances() {
     return this.get("/api/finances");
@@ -160,8 +156,6 @@ class API {
     });
   }
 
-  // ===== SETTINGS =====
-
   async getSettings() {
     return this.get("/api/settings");
   }
@@ -169,8 +163,6 @@ class API {
   async updateSettings(data) {
     return this.patch("/api/settings", data);
   }
-
-  // ===== REQUISITES =====
 
   async getRequisites() {
     return this.get("/api/requisites");
@@ -180,7 +172,12 @@ class API {
     return this.patch("/api/requisites", data);
   }
 
-  // ===== LOGS (admin) =====
+  async getUpdates(since = null) {
+    const params = since ? `&since=${since}` : "";
+    return this.get(`/api/updates?dummy=1${params}`);
+  }
+
+  // ===== LOGS (для админа) =====
 
   async getLogs(filter = "all") {
     const params = filter !== "all" ? `?filter=${filter}` : "";
@@ -188,14 +185,7 @@ class API {
   }
 
   async clearLogs() {
-    return this.delete("/api/logs");
-  }
-
-  // ===== UPDATES (Polling) =====
-
-  async getUpdates(since = null) {
-    const params = since ? `&since=${since}` : "";
-    return this.get(`/api/updates?dummy=1${params}`);
+    return this.request("/api/logs", { method: "DELETE" });
   }
 }
 

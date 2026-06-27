@@ -1,4 +1,5 @@
 import processor
+import activity_log
 from typing import Dict, List, Tuple, Optional
 
 
@@ -51,7 +52,7 @@ def initialize_fractions_for_project(project_id: str, total_budget: float) -> Op
     fraction_id = processor.create_fractions(fraction_data)
     
     if fraction_id:
-        processor.log_action(
+        activity_log.log_action(
             "system", 
             "INITIALIZED_FRACTIONS", 
             fraction_id, 
@@ -125,7 +126,7 @@ def update_developer_shares(project_id: str) -> bool:
     })
     
     if success:
-        processor.log_action(
+        activity_log.log_action(
             "system",
             "UPDATED_SHARES",
             project_id,
@@ -235,7 +236,7 @@ def initialize_finance_for_project(project_id: str) -> Optional[str]:
     finance_id = processor.create_finance(finance_data)
     
     if finance_id:
-        processor.log_action(
+        activity_log.log_action(
             "system",
             "INITIALIZED_FINANCE",
             finance_id,
@@ -270,7 +271,7 @@ def register_client_payment(project_id: str, amount: float) -> bool:
     })
     
     if success:
-        processor.log_action(
+        activity_log.log_action(
             "system",
             "CLIENT_PAYMENT",
             finance["id"],
@@ -316,7 +317,7 @@ def register_payout_to_developer(project_id: str, user_id: str, amount: float) -
     })
     
     if success:
-        processor.log_action(
+        activity_log.log_action(
             "system",
             "PAYOUT",
             finance["id"],

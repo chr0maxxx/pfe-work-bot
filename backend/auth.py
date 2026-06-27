@@ -7,7 +7,7 @@ import time
 from urllib.parse import parse_qs
 from typing import Optional, Dict
 from datetime import datetime, timedelta
-
+import activity_log
 import processor
 
 
@@ -145,7 +145,7 @@ def create_session(user_id: str) -> str:
     # Сохраняем
     _save_sessions(sessions)
     
-    processor.log_action(user_id, "SESSION_CREATED", session_id)
+    activity_log.log_action(user_id, "SESSION_CREATED", session_id)
     
     return session_id
 
@@ -181,7 +181,7 @@ def delete_session(session_id: str) -> bool:
         del sessions[session_id]
         _save_sessions(sessions)
         
-        processor.log_action(user_id, "SESSION_DELETED", session_id)
+        activity_log.log_action(user_id, "SESSION_DELETED", session_id)
         return True
     
     return False
@@ -228,7 +228,7 @@ def authenticate_telegram_user(init_data: str) -> Optional[Dict]:
     # Ищем пользователя в базе
     user = processor.get_user_by_telegram_id(telegram_id)
     if not user:
-        processor.log_action(
+        activity_log.log_action(
             "unknown",
             "UNAUTHORIZED_ACCESS",
             f"telegram_id={telegram_id}",
@@ -275,7 +275,7 @@ def authenticate_admin(username: str, password: str) -> Optional[Dict]:
     # Создаём сессию
     session_id = create_session(admin_user["id"])
     
-    processor.log_action(admin_user["id"], "ADMIN_LOGIN", session_id)
+    activity_log.log_action(admin_user["id"], "ADMIN_LOGIN", session_id)
     
     return {
         "user": admin_user,
@@ -307,7 +307,7 @@ def impersonate_user(admin_session_id: str, target_user_id: str) -> Optional[str
     # Создаём новую сессию для целевого пользователя
     new_session_id = create_session(target_user_id)
     
-    processor.log_action(
+    activity_log.log_action(
         admin_user_id,
         "IMPERSONATE",
         target_user_id,

@@ -8,6 +8,7 @@ import os
 import auth
 import processor
 import calculator
+import activity_log
 
 # Инициализация FastAPI
 app = FastAPI(title="Web Studio API", version="1.0")
@@ -232,7 +233,7 @@ async def create_project(request: Request):
     calculator.initialize_fractions_for_project(project_id, data.get("total_budget"))
     
     # Логируем
-    processor.log_action(
+    activity_log.log_action(
         user["id"],
         "CREATED_PROJECT",
         project_id,
@@ -269,7 +270,7 @@ async def update_project(project_id: str, request: Request):
         old_value = old_project.get(key)
         changes.append(f"{key}={old_value}->{value}")
     
-    processor.log_action(
+    activity_log.log_action(
         user["id"],
         "UPDATED_PROJECT",
         project_id,
@@ -336,7 +337,7 @@ async def create_task(request: Request):
     calculator.update_developer_shares(project_id)
     
     # Логируем
-    processor.log_action(
+    activity_log.log_action(
         user["id"],
         "CREATED_TASK",
         task_id,
@@ -381,7 +382,7 @@ async def update_task(task_id: str, request: Request):
         old_value = old_task.get(key)
         changes.append(f"{key}={old_value}->{value}")
     
-    processor.log_action(
+    activity_log.log_action(
         user["id"],
         "UPDATED_TASK",
         task_id,
@@ -411,7 +412,7 @@ async def complete_task(task_id: str, request: Request):
     if not success:
         raise HTTPException(status_code=500, detail="Failed to complete task")
     
-    processor.log_action(
+    activity_log.log_action(
         user["id"],
         "COMPLETED_TASK",
         task_id,
@@ -459,7 +460,7 @@ async def register_client_payment(request: Request):
     if not success:
         raise HTTPException(status_code=500, detail="Failed to register payment")
     
-    processor.log_action(
+    activity_log.log_action(
         user["id"],
         "CLIENT_PAYMENT",
         project_id,
@@ -489,7 +490,7 @@ async def register_payout(request: Request):
     if not success:
         raise HTTPException(status_code=500, detail="Failed to register payout")
     
-    processor.log_action(
+    activity_log.log_action(
         user["id"],
         "PAYOUT",
         project_id,
@@ -565,7 +566,7 @@ async def get_updates(request: Request, since: Optional[str] = None):
     user = get_current_user(request)
     
     # Читаем лог активности
-    logs = processor.get_activity_log(100)
+    logs = activity_log.get_logs(100)
     
     # Фильтруем логи после timestamp
     updates = []

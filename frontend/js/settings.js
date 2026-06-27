@@ -106,6 +106,23 @@ function renderSettings() {
     `;
 }
 
+async function setTheme(theme) {
+  state.currentTheme = theme;
+  document.body.dataset.theme = theme;
+
+  // Сохраняем в settings
+  try {
+    const response = await api.updateSettings({ theme: theme });
+    if (response.success) {
+      notify("Тема изменена");
+    } else {
+      notify("Ошибка сохранения темы", "error");
+    }
+  } catch (error) {
+    console.error("Error saving theme:", error);
+  }
+}
+
 function renderThemeOption(id, label, colors) {
   const isActive = state.currentTheme === id;
   return `

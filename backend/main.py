@@ -496,9 +496,10 @@ async def update_settings(request: dict, session_id: str = None):
     if not user:
         return {"error": "Invalid session"}
     
-    # Получаем старые настройки для логирования
+    # Получаем старые настройки
     old_settings = processor.get_settings(user["id"])
     
+    # Обновляем настройки
     success = processor.update_settings(user["id"], request)
     
     if success:

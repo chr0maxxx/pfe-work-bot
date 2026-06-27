@@ -57,7 +57,7 @@ function renderDebug() {
         </div>
         
         <div id="logsList">
-            ${logs.length > 0 ? logs.slice().reverse().map(renderLogEntry).join("") : '<div class="empty-state">Нет записей</div>'}
+            ${logs.length > 0 ? logs.map(renderLogEntry).join("") : '<div class="empty-state">Нет записей</div>'}
         </div>
     `;
 }
@@ -163,7 +163,7 @@ function filterLogs() {
   if (logsList) {
     logsList.innerHTML =
       filtered.length > 0
-        ? filtered.slice().reverse().map(renderLogEntry).join("")
+        ? filtered.map(renderLogEntry).join("")
         : '<div class="empty-state">Нет записей</div>';
   }
 }

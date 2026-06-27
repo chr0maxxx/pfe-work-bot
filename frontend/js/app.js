@@ -61,6 +61,12 @@ async function init() {
     // Start polling
     startPolling();
 
+    // Применяем тему из settings
+    if (currentSettings && currentSettings.theme) {
+      state.currentTheme = currentSettings.theme;
+      document.body.dataset.theme = currentSettings.theme;
+    }
+
     console.log("=== INIT COMPLETE ===");
   } catch (error) {
     console.error("=== INIT ERROR ===", error);
@@ -89,6 +95,11 @@ async function authenticate() {
   }
 
   state.currentUser = response.user;
+
+  if (response.settings && response.settings.theme) {
+    state.currentTheme = response.settings.theme;
+    document.body.dataset.theme = response.settings.theme;
+  }
 
   // Load additional data
   await loadAllData();

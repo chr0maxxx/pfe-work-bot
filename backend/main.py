@@ -1,6 +1,6 @@
 import os
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 # Telegram
@@ -70,7 +70,7 @@ async def log_requests(request, call_next):
 @app.get("/health")
 async def health_check():
     """Health check для Amvera"""
-    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
 # ============================================================

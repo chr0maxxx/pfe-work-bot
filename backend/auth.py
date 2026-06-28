@@ -248,10 +248,6 @@ def authenticate_telegram_user(init_data: str) -> Optional[Dict]:
 
 # ============= АДМИН-АВТОРИЗАЦИЯ (ЛОГИН/ПАРОЛЬ) =============
 
-# Простая проверка пароля (в продакшене использовать хеширование!)
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"  # ИЗМЕНИТЬ В ПРОДАКШЕНЕ!
-
 
 def authenticate_admin(username: str, password: str) -> Optional[Dict]:
     """
@@ -352,3 +348,6 @@ def require_role(session_id: str, allowed_roles: list) -> Dict:
         raise Exception(f"Access denied. Required roles: {allowed_roles}")
     
     return user
+
+# Очистка просроченных сессий при импорте модуля
+cleanup_expired_sessions()

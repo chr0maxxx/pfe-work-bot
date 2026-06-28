@@ -1,19 +1,17 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
-# Amvera persistent storage
 LOG_FILE = '/data/activity.log'
 
 def log_action(user_id: str, action: str, entity_id: str = '', details: str = ''):
     """Записать действие в лог"""
-    timestamp = datetime.now().isoformat()
+    # Используем UTC с явным указанием timezone
+    timestamp = datetime.now(timezone.utc).isoformat()
     log_entry = f"[{timestamp}] [{user_id}] {action} {entity_id} {details}\n"
     
     try:
-        # Создаём директорию если её нет
         os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
         
-        # Добавляем в конец файла (не перезаписываем!)
         with open(LOG_FILE, 'a', encoding='utf-8') as f:
             f.write(log_entry)
     except Exception as e:

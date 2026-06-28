@@ -1,27 +1,27 @@
 import os
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
-# Amvera persistent storage
 LOG_FILE = '/data/system.log'
 
-# Создаём директорию если её нет
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 system_logger = logging.getLogger('system')
 system_logger.setLevel(logging.DEBUG)
 
+# Формат с UTC
 formatter = logging.Formatter(
     '[%(asctime)s] %(levelname)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
+# Консоль
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setLevel(logging.DEBUG)
 console_handler.setFormatter(formatter)
 
-# ПЕРЕЗАПИСЫВАЕМ файл при каждом запуске (mode='w')
+# Файл — перезаписываем при каждом запуске
 file_handler = logging.FileHandler(LOG_FILE, mode='w', encoding='utf-8')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(formatter)

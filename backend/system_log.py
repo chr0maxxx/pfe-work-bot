@@ -1,7 +1,7 @@
 import os
 import logging
 import sys
-from datetime import datetime, timezone
+import datetime
 
 LOG_FILE = '/data/system.log'
 

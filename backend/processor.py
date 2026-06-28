@@ -1,8 +1,8 @@
 import json
-import activity_log
 import os
 from datetime import datetime
-from typing import List, Dict, Optional, Any
+from zoneinfo import ZoneInfo
+from typing import List, Dict, Optional
 
 # Amvera persistent storage
 DATA_DIR = '/data'
@@ -119,7 +119,8 @@ def create_project(project_data: Dict) -> Optional[str]:
     # Генерируем ID
     project_id = f"p_{len(projects) + 1:03d}"
     project_data['id'] = project_id
-    project_data['created_at'] = datetime.now().isoformat()
+    ekb_tz = ZoneInfo("Asia/Yekaterinburg")
+    project_data['created_at'] = datetime.now(ekb_tz).isoformat()
     
     projects.append(project_data)
     
@@ -177,7 +178,8 @@ def create_task(task_data: Dict) -> Optional[str]:
     # Генерируем ID
     task_id = f"t_{len(tasks) + 1:03d}"
     task_data['id'] = task_id
-    task_data['created_at'] = datetime.now().isoformat()
+    ekb_tz = ZoneInfo("Asia/Yekaterinburg")
+    task_data['created_at'] = datetime.now(ekb_tz).isoformat()
     task_data['status'] = 'pending'
     task_data['column'] = 'backlog'
     
@@ -202,11 +204,12 @@ def update_task(task_id: str, updates: Dict) -> bool:
 
 
 def complete_task(task_id: str) -> bool:
+    ekb_tz = ZoneInfo("Asia/Yekaterinburg")
     """Отметить задачу как выполненную"""
     return update_task(task_id, {
         'status': 'done',
         'column': 'done',
-        'completed_at': datetime.now().isoformat()
+        'completed_at': datetime.now(ekb_tz).isoformat()
     })
     
 def delete_task(task_id: str) -> bool:
@@ -246,7 +249,8 @@ def create_fractions(fraction_data: Dict) -> Optional[str]:
     
     fraction_id = f"f_{len(fractions) + 1:03d}"
     fraction_data['id'] = fraction_id
-    fraction_data['calculated_at'] = datetime.now().isoformat()
+    ekb_tz = ZoneInfo("Asia/Yekaterinburg")
+    fraction_data['calculated_at'] = datetime.now(ekb_tz).isoformat()
     
     fractions.append(fraction_data)
     
@@ -288,7 +292,8 @@ def create_finance(finance_data: Dict) -> Optional[str]:
     
     finance_id = f"fin_{len(finances) + 1:03d}"
     finance_data['id'] = finance_id
-    finance_data['last_updated'] = datetime.now().isoformat()
+    ekb_tz = ZoneInfo("Asia/Yekaterinburg")
+    finance_data['last_updated'] = datetime.now(ekb_tz).isoformat()
     
     finances.append(finance_data)
     
@@ -305,7 +310,8 @@ def update_finance(finance_id: str, updates: Dict) -> bool:
     for i, finance in enumerate(finances):
         if finance['id'] == finance_id:
             finances[i].update(updates)
-            finances[i]['last_updated'] = datetime.now().isoformat()
+            ekb_tz = ZoneInfo("Asia/Yekaterinburg")
+            finances[i]['last_updated'] = datetime.now(ekb_tz).isoformat()
             return write_json('finances.json', {'finances': finances})
     
     return False

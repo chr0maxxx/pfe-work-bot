@@ -1,7 +1,7 @@
 import processor
 import activity_log
 import system_log
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Tuple, Optional
 
 
 # ============= КОНСТАНТЫ =============
@@ -126,8 +126,8 @@ def update_developer_shares(project_id: str) -> bool:
     # Валидация
     is_valid, tasks_sum, developers_pool = validate_tasks_sum(project_id)
     if not is_valid:
-        print(f"Ошибка: сумма задач ({tasks_sum}) превышает пул ({developers_pool})")
-        return False
+        system_log.error(f"Сумма задач ({tasks_sum}) превышает пул ({developers_pool}) для проекта {project_id}")
+    return False
     
     # Обновляем fractions
     success = processor.update_fractions(project_id, {

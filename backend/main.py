@@ -1,6 +1,5 @@
 import os
 import asyncio
-from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 # Telegram
@@ -63,6 +62,7 @@ async def log_requests(request, call_next):
     system_log.info(f"RESPONSE: {response.status_code}")
     return response
 
+
 # ============================================================
 # HEALTH CHECK
 # ============================================================
@@ -70,6 +70,7 @@ async def log_requests(request, call_next):
 @app.get("/health")
 async def health_check():
     """Health check для Amvera"""
+    from datetime import datetime, timezone
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
@@ -264,27 +265,27 @@ async def update_project(project_id: str, request: Request, session_id: str = No
         if new_budget != old_budget:
             system_log.info(f"Budget changed for {project_id}: {old_budget} -> {new_budget}")
             
-            # Получаем текущие fractions
-            fractions = processor.get_fractions(project_id=project_id)
-            
-            if fractions:
-                # Пересчитываем доли
-                base = calculator.calculate_base_fractions(new_budget)
+            try:
+                fractions = processor.get_fractions(project_id=project_id)
                 
-                # Обновляем fractions
-                processor.update_fractions(project_id, {
-                    "total_budget": new_budget,
-                    "studio_fund": base["studio_fund"],
-                    "manager_share": base["manager_share"],
-                    "developers_pool": base["developers_pool"]
-                })
-                
-                system_log.info(f"Fractions updated for {project_id}: pool={base['developers_pool']}")
-                
-                activity_log.log_action(
-                    user["id"], "UPDATED_FRACTIONS", project_id,
-                    f"budget={old_budget}->{new_budget} pool={base['developers_pool']}"
-                )
+                if fractions:
+                    base = calculator.calculate_base_fractions(new_budget)
+                    
+                    processor.update_fractions(project_id, {
+                        "total_budget": new_budget,
+                        "studio_fund": base["studio_fund"],
+                        "manager_share": base["manager_share"],
+                        "developers_pool": base["developers_pool"]
+                    })
+                    
+                    system_log.info(f"Fractions updated for {project_id}: pool={base['developers_pool']}")
+                    
+                    activity_log.log_action(
+                        user["id"], "UPDATED_FRACTIONS", project_id,
+                        f"budget={old_budget}->{new_budget} pool={base['developers_pool']}"
+                    )
+            except Exception as e:
+                system_log.error(f"Fractions update error: {e}")
     
     # Логируем изменения проекта
     changes = [f"{k}={old_project.get(k)}->{v}" for k, v in data.items() if k != "total_budget"]
@@ -410,28 +411,32 @@ async def update_task(task_id: str, request: Request, session_id: str = None):
 @app.post("/api/tasks/{task_id}/complete")
 async def complete_task(task_id: str, session_id: str = None):
     """Отметить задачу выполненной"""
-    if not session_id:
-        return {"error": "Not authenticated"}
+    try:
+        if not session_id:
+            return {"error": "Not authenticated"}
+        
+        user = auth.get_user_from_session(session_id)
+        if not user:
+            return {"error": "Invalid session"}
+        
+        task = processor.get_task_by_id(task_id)
+        if not task:
+            return {"error": "Task not found"}
+        
+        if task["assignee_id"] != user["id"] and user["role"] != "admin":
+            return {"error": "Only assignee or admin can complete task"}
+        
+        success = processor.complete_task(task_id)
+        if not success:
+            return {"error": "Failed to complete task"}
+        
+        activity_log.log_action(user["id"], "COMPLETED_TASK", task_id, f"project={task['project_id']}")
+        
+        return {"success": True}
     
-    user = auth.get_user_from_session(session_id)
-    if not user:
-        return {"error": "Invalid session"}
-    
-    task = processor.get_task_by_id(task_id)
-    if not task:
-        return {"error": "Task not found"}
-    
-    # Проверяем права: исполнитель ИЛИ админ
-    if task["assignee_id"] != user["id"] and user["role"] != "admin":
-        return {"error": "Only assignee or admin can complete task"}
-    
-    success = processor.complete_task(task_id)
-    if not success:
-        return {"error": "Failed to complete task"}
-    
-    activity_log.log_action(user["id"], "COMPLETED_TASK", task_id, f"project={task['project_id']}")
-    
-    return {"success": True}
+    except Exception as e:
+        system_log.error(f"complete_task error: {e}")
+        return {"error": f"Internal error: {str(e)}"}
 
 
 @app.delete("/api/tasks/{task_id}")
@@ -457,7 +462,10 @@ async def delete_task(task_id: str, session_id: str = None):
         return {"error": "Failed to delete task"}
     
     # Пересчитываем доли
-    calculator.update_developer_shares(task["project_id"])
+    try:
+        calculator.update_developer_shares(task["project_id"])
+    except Exception as e:
+        system_log.error(f"update_developer_shares error after delete: {e}")
     
     activity_log.log_action(
         user["id"], "DELETED_TASK", task_id,
@@ -1087,8 +1095,11 @@ async def send_file(message: types.Message, file_path: str, filename: str):
             )
         
         # Логируем скачивание файла
+        user = processor.get_user_by_telegram_id(message.from_user.id)
+        user_id = user["id"] if user else "unknown"
+        
         activity_log.log_action(
-            "u_001", "DOWNLOADED_FILE", filename,
+            user_id, "DOWNLOADED_FILE", filename,
             f"telegram_id={message.from_user.id}"
         )
     except Exception as e:

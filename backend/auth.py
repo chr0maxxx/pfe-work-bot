@@ -2,7 +2,6 @@ import hashlib
 import hmac
 import json
 import os
-from dotenv import load_dotenv
 import time
 from urllib.parse import parse_qs
 from typing import Optional, Dict

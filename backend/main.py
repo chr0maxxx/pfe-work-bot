@@ -281,41 +281,61 @@ async def get_tasks(project_id: str = None, session_id: str = None):
 @app.post("/api/tasks")
 async def create_task(request: Request, session_id: str = None):
     """Создать задачу"""
-    if not session_id:
-        return {"error": "Not authenticated"}
+    try:
+        if not session_id:
+            return {"error": "Not authenticated"}
+        
+        user = auth.get_user_from_session(session_id)
+        if not user:
+            return {"error": "Invalid session"}
+        
+        if user["role"] not in ["lead_developer", "admin"]:
+            return {"error": "Access denied"}
+        
+        data = await request.json()
+        
+        project_id = data.get("project_id")
+        
+        # Валидация суммы задач
+        try:
+            is_valid, tasks_sum, pool = calculator.validate_tasks_sum(project_id)
+        except Exception as e:
+            system_log.error(f"validate_tasks_sum error: {e}")
+            return {"error": f"Ошибка валидации: {str(e)}"}
+        
+        new_cost = data.get("cost", 0)
+        if tasks_sum + new_cost > pool:
+            return {"error": f"Превышена сумма задач. Доступно: {pool - tasks_sum}₽"}
+        
+        # Создаём задачу
+        task_id = processor.create_task({
+            "project_id": project_id,
+            "title": data.get("title"),
+            "cost": data.get("cost"),
+            "assignee_id": data.get("assignee_id"),
+            "created_by": user["id"]
+        })
+        
+        if not task_id:
+            return {"error": "Failed to create task"}
+        
+        # Обновляем доли
+        try:
+            calculator.update_developer_shares(project_id)
+        except Exception as e:
+            system_log.error(f"update_developer_shares error: {e}")
+            # Не прерываем — задача уже создана
+        
+        activity_log.log_action(
+            user["id"], "CREATED_TASK", task_id,
+            f"project={project_id} title={data.get('title')} cost={data.get('cost')}"
+        )
+        
+        return {"success": True, "task_id": task_id}
     
-    user = auth.get_user_from_session(session_id)
-    if not user or user["role"] not in ["lead_developer", "admin"]:
-        return {"error": "Access denied"}
-    
-    data = await request.json()
-    
-    project_id = data.get("project_id")
-    is_valid, tasks_sum, pool = calculator.validate_tasks_sum(project_id)
-    
-    new_cost = data.get("cost", 0)
-    if tasks_sum + new_cost > pool:
-        return {"error": f"Превышена сумма задач. Доступно: {pool - tasks_sum}₽"}
-    
-    task_id = processor.create_task({
-        "project_id": project_id,
-        "title": data.get("title"),
-        "cost": data.get("cost"),
-        "assignee_id": data.get("assignee_id"),
-        "created_by": user["id"]
-    })
-    
-    if not task_id:
-        return {"error": "Failed to create task"}
-    
-    calculator.update_developer_shares(project_id)
-    
-    activity_log.log_action(
-        user["id"], "CREATED_TASK", task_id,
-        f"project={project_id} title={data.get('title')} cost={data.get('cost')}"
-    )
-    
-    return {"success": True, "task_id": task_id}
+    except Exception as e:
+        system_log.error(f"create_task error: {e}")
+        return {"error": f"Internal error: {str(e)}"}
 
 
 @app.patch("/api/tasks/{task_id}")

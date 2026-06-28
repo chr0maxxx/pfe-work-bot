@@ -1,12 +1,14 @@
 import os
-from datetime import datetime, timezone
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 LOG_FILE = '/data/activity.log'
 
 def log_action(user_id: str, action: str, entity_id: str = '', details: str = ''):
     """Записать действие в лог"""
-    # Используем UTC с явным указанием timezone
-    timestamp = datetime.now(timezone.utc).isoformat()
+    # Время сразу в часовом поясе Екатеринбурга
+    ekb_tz = ZoneInfo("Asia/Yekaterinburg")
+    timestamp = datetime.now(ekb_tz).isoformat()
     log_entry = f"[{timestamp}] [{user_id}] {action} {entity_id} {details}\n"
     
     try:

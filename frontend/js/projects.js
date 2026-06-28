@@ -1,6 +1,6 @@
 // ===== PROJECTS SCREEN =====
 
-function renderProjects() {
+async function renderProjects() {
   const user = state.currentUser;
   const projects = state.projects || [];
   const canCreate = user.role === "manager" || user.role === "admin";
@@ -12,6 +12,14 @@ function renderProjects() {
     (p) => p.status === "completed" || p.status === "closed",
   );
 
+  // Ждём рендер всех карточек параллельно
+  const activeCards = await Promise.all(
+    active.map((p) => renderProjectCard(p)),
+  );
+  const closedCards = await Promise.all(
+    closed.map((p) => renderProjectCard(p)),
+  );
+
   return `
     <div class="screen-title">
       <span>📁 Проекты</span>
@@ -19,11 +27,11 @@ function renderProjects() {
     </div>
     
     <div class="section-title">Активные проекты</div>
-    ${active.map((p) => renderProjectCard(p)).join("")}
+    ${activeCards.join("")}
     ${active.length === 0 ? '<div class="empty-state">Нет активных проектов</div>' : ""}
     
     <div class="section-title">Закрытые проекты</div>
-    ${closed.map((p) => renderProjectCard(p)).join("")}
+    ${closedCards.join("")}
     ${closed.length === 0 ? '<div class="empty-state">Нет закрытых проектов</div>' : ""}
   `;
 }

@@ -205,13 +205,13 @@ async function renderScreen() {
 
   switch (screen) {
     case "home":
-      html = renderHomeScreen();
+      html = await renderHomeScreen();
       break;
     case "projects":
       if (state.selectedProject) {
         html = await renderProjectDetail();
       } else {
-        html = renderProjects();
+        html = await renderProjects();
       }
       setTimeout(attachProjectHandlers, 0);
       break;

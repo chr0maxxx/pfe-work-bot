@@ -1,39 +1,126 @@
 // ===== HOME SCREEN =====
 
-function renderHomeScreen() {
+async function renderHomeScreen() {
   const user = state.currentUser;
   if (!user) return "";
 
   if (user.role === "developer") {
     return renderHomeDeveloper();
   } else {
-    return renderHomeManager();
+    return await renderHomeManager();
   }
 }
 
-function renderHomeManager() {
+async function renderHomeManager() {
   const projects = state.projects || [];
   const activeProjects = projects.filter(
     (p) => p.status === "active" || p.status === "in_progress",
   );
 
-  // Calculate average progress
+  // Считаем средний прогресс
   let avgProgress = 0;
   if (activeProjects.length > 0) {
-    const sum = activeProjects.reduce((s, p) => s + (p.progress || 0), 0);
-    avgProgress = Math.round(sum / activeProjects.length);
+    const progressPromises = activeProjects.map(async (p) => {
+      try {
+        const summary = await api.getProject(p.id);
+        return summary.progress?.progress_percent || 0;
+      } catch (e) {
+        return 0;
+      }
+    });
+    const progresses = await Promise.all(progressPromises);
+    avgProgress = Math.round(
+      progresses.reduce((s, p) => s + p, 0) / activeProjects.length,
+    );
   }
 
+  // Рендерим карточки проектов
+  const projectCards = await Promise.all(
+    activeProjects.map(async (p) => {
+      try {
+        const summary = await api.getProject(p.id);
+        const tasks = summary.tasks || [];
+        const fractions = summary.fractions;
+
+        // Группируем задачи по исполнителям
+        const assignees = {};
+        tasks.forEach((t) => {
+          if (!assignees[t.assignee_id]) {
+            assignees[t.assignee_id] = { total: 0, done: 0 };
+          }
+          assignees[t.assignee_id].total += t.cost;
+          if (t.status === "done") assignees[t.assignee_id].done += t.cost;
+        });
+
+        const assigneeNames = {
+          u_002: "Максим",
+          u_003: "Андрей",
+        };
+
+        const progressBars = Object.keys(assignees)
+          .map((uid) => {
+            const name = assigneeNames[uid] || uid;
+            const data = assignees[uid];
+            const pct =
+              data.total > 0 ? Math.round((data.done / data.total) * 100) : 0;
+            return `
+            <div class="progress-row">
+              <div class="progress-name">
+                <div class="avatar avatar-sm">${name.charAt(0)}</div>
+                <span>${name}</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:${pct}%"></div>
+              </div>
+              <div class="progress-text">${pct}%</div>
+            </div>
+          `;
+          })
+          .join("");
+
+        const totalCost = tasks.reduce((s, t) => s + t.cost, 0);
+        const developersPool = fractions?.developers_pool || 0;
+        const remaining = developersPool - totalCost;
+
+        return `
+          <div class="card" onclick="openProject('${p.id}')">
+            <div class="project-card-header">
+              <div style="flex:1;min-width:0">
+                <div class="project-title">${p.name}</div>
+                <div class="project-client">${p.client_name || "Не указан"}</div>
+              </div>
+              <div class="project-card-badges">
+                ${p.status === "active" || p.status === "in_progress" ? '<span class="badge badge-info">В работе</span>' : ""}
+              </div>
+            </div>
+            <div class="project-budget">Бюджет: ${formatMoney(p.total_budget)}</div>
+            ${progressBars}
+            <div style="margin-top:10px;font-size:13px;color:var(--text-dim)">
+              Распределено: ${formatMoney(totalCost)} из ${formatMoney(developersPool)} • 
+              <span style="color:${remaining <= 0 ? "#50c878" : remaining < developersPool * 0.3 ? "#ffa500" : "#ff4444"}">
+                Нераспределено: ${formatMoney(remaining)}
+              </span>
+            </div>
+            ${p.deadline ? `<div class="project-deadline ${isOverdue(p.deadline) ? "overdue" : ""}">📅 Дедлайн: ${formatDate(p.deadline)}</div>` : ""}
+          </div>
+        `;
+      } catch (e) {
+        console.error(`Error loading project ${p.id}:`, e);
+        return "";
+      }
+    }),
+  );
+
   return `
-        <div class="counter-block">
-            <div class="counter-value">${avgProgress}%</div>
-            <div class="counter-label">Средний прогресс по проектам</div>
-        </div>
-        
-        <div class="section-title">📁 Проекты</div>
-        ${activeProjects.map((p) => renderProjectCard(p)).join("")}
-        ${activeProjects.length === 0 ? '<div class="empty-state"><div class="empty-state-icon">📭</div>Нет активных проектов</div>' : ""}
-    `;
+    <div class="counter-block">
+      <div class="counter-value">${avgProgress}%</div>
+      <div class="counter-label">Средний прогресс по проектам</div>
+    </div>
+    
+    <div class="section-title">📁 Проекты</div>
+    ${projectCards.join("")}
+    ${activeProjects.length === 0 ? '<div class="empty-state"><div class="empty-state-icon">📭</div>Нет активных проектов</div>' : ""}
+  `;
 }
 
 function renderHomeDeveloper() {

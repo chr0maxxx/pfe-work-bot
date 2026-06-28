@@ -247,13 +247,49 @@ async def update_project(project_id: str, request: Request, session_id: str = No
     data = await request.json()
     
     old_project = processor.get_project_by_id(project_id)
+    if not old_project:
+        return {"error": "Project not found"}
+    
+    # Обновляем проект
     success = processor.update_project(project_id, data)
     
     if not success:
         return {"error": "Failed to update project"}
     
-    changes = [f"{k}={old_project.get(k)}->{v}" for k, v in data.items()]
-    activity_log.log_action(user["id"], "UPDATED_PROJECT", project_id, " ".join(changes))
+    # Если изменился бюджет — пересчитываем fractions
+    if "total_budget" in data:
+        new_budget = data["total_budget"]
+        old_budget = old_project.get("total_budget", 0)
+        
+        if new_budget != old_budget:
+            system_log.info(f"Budget changed for {project_id}: {old_budget} -> {new_budget}")
+            
+            # Получаем текущие fractions
+            fractions = processor.get_fractions(project_id=project_id)
+            
+            if fractions:
+                # Пересчитываем доли
+                base = calculator.calculate_base_fractions(new_budget)
+                
+                # Обновляем fractions
+                processor.update_fractions(project_id, {
+                    "total_budget": new_budget,
+                    "studio_fund": base["studio_fund"],
+                    "manager_share": base["manager_share"],
+                    "developers_pool": base["developers_pool"]
+                })
+                
+                system_log.info(f"Fractions updated for {project_id}: pool={base['developers_pool']}")
+                
+                activity_log.log_action(
+                    user["id"], "UPDATED_FRACTIONS", project_id,
+                    f"budget={old_budget}->{new_budget} pool={base['developers_pool']}"
+                )
+    
+    # Логируем изменения проекта
+    changes = [f"{k}={old_project.get(k)}->{v}" for k, v in data.items() if k != "total_budget"]
+    if changes:
+        activity_log.log_action(user["id"], "UPDATED_PROJECT", project_id, " ".join(changes))
     
     return {"success": True}
 

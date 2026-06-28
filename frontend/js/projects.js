@@ -200,11 +200,15 @@ async function renderProjectDetail() {
       ${
         canEdit
           ? `
-        <div class="action-row" style="margin-top:20px">
-          <button class="btn btn-secondary" id="btnCreateTaskForProject">➕ Создать задачу</button>
-          ${project.status === "active" || project.status === "in_progress" ? `<button class="btn btn-danger" id="btnCloseProject">🗑️ Закрыть проект</button>` : ""}
-        </div>
-      `
+  <div class="action-row" style="margin-top:20px">
+    <button class="btn btn-secondary" id="btnCreateTaskForProject">➕ Создать задачу</button>
+    ${
+      project.status === "active" || project.status === "in_progress"
+        ? `<button class="btn btn-danger" id="btnCloseProject">🗑️ Закрыть проект</button>`
+        : `<button class="btn btn-primary" id="btnActivateProject">🚀 Активировать проект</button>`
+    }
+  </div>
+`
           : ""
       }
     `;
@@ -306,6 +310,13 @@ function attachProjectHandlers() {
   if (btnClose)
     btnClose.addEventListener("click", () =>
       closeProject(state.selectedProject),
+    );
+
+  // Кнопка "Активировать проект"
+  const btnActivate = document.getElementById("btnActivateProject");
+  if (btnActivate)
+    btnActivate.addEventListener("click", () =>
+      activateProject(state.selectedProject),
     );
 
   // Кнопки задач
@@ -460,6 +471,18 @@ async function openEditProjectModal(projectId) {
       <div class="form-group">
         <label class="form-label">Бюджет (₽)</label>
         <input type="number" class="form-input" id="editProjectBudget" value="${project.total_budget || 0}">
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px">
+          ⚠️ Изменение бюджета пересчитает доли разработчиков
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Статус</label>
+        <select class="form-select" id="editProjectStatus">
+          <option value="active" ${project.status === "active" ? "selected" : ""}>🟢 Активный</option>
+          <option value="in_progress" ${project.status === "in_progress" ? "selected" : ""}>🔄 В работе</option>
+          <option value="closed" ${project.status === "closed" ? "selected" : ""}>⚫ Закрыт</option>
+          <option value="completed" ${project.status === "completed" ? "selected" : ""}>✅ Завершён</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">Дедлайн</label>
@@ -490,6 +513,7 @@ async function openEditProjectModal(projectId) {
           .value.trim();
         const budget =
           parseInt(document.getElementById("editProjectBudget").value) || 0;
+        const status = document.getElementById("editProjectStatus").value;
         const deadline = document.getElementById("editProjectDeadline").value;
         const notes = document.getElementById("editProjectNotes").value.trim();
 
@@ -511,6 +535,7 @@ async function openEditProjectModal(projectId) {
             name,
             client_name: client,
             total_budget: budget,
+            status,
             deadline,
             notes,
           });
@@ -518,6 +543,7 @@ async function openEditProjectModal(projectId) {
           if (response.success) {
             closeModal();
             notify("Проект обновлён");
+            await loadAllData();
             await render();
           } else {
             notify(
@@ -638,4 +664,25 @@ async function closeProject(projectId) {
 function backToProjects() {
   state.selectedProject = null;
   render();
+}
+
+async function activateProject(projectId) {
+  if (!confirm("Активировать проект?")) return;
+
+  try {
+    const response = await api.updateProject(projectId, { status: "active" });
+
+    if (response.success) {
+      notify("Проект активирован");
+      await loadAllData();
+      await render();
+    } else {
+      notify(
+        "Ошибка: " + (response.error || "Не удалось активировать"),
+        "error",
+      );
+    }
+  } catch (error) {
+    notify("Ошибка: " + error.message, "error");
+  }
 }

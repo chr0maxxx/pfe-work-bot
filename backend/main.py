@@ -11,6 +11,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # FastAPI
 from fastapi import FastAPI
+from fastapi import Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -79,10 +80,11 @@ async def health_check():
 # ----- АВТОРИЗАЦИЯ -----
 
 @app.post("/api/auth/telegram")
-async def auth_telegram(request: dict):
+async def auth_telegram(request: Request):
     """Авторизация через Telegram initData"""
     try:
-        init_data = request.get("initData")
+        data = await request.json()
+        init_data = data.get("initData")
         if not init_data:
             return {"success": False, "detail": "initData required"}
         
@@ -112,11 +114,12 @@ async def auth_telegram(request: dict):
 
 
 @app.post("/api/auth/admin")
-async def auth_admin(request: dict):
+async def auth_admin(request: Request):
     """Авторизация админа"""
     try:
-        username = request.get("username")
-        password = request.get("password")
+        data = await request.json()
+        username = data.get("username")
+        password = data.get("password")
         
         result = auth.authenticate_admin(username, password)
         
@@ -196,22 +199,24 @@ async def get_project(project_id: str, session_id: str = None):
 
 
 @app.post("/api/projects")
-async def create_project(request: dict, session_id: str = None):
+async def create_project(request: Request, session_id: str = None):
     """Создать проект"""
     if not session_id:
         return {"error": "Not authenticated"}
     
     user = auth.get_user_from_session(session_id)
-    if not user or user["role"] not in ["manager", "admin"]:
+    if user["role"] not in ["manager", "admin"]:
         return {"error": "Access denied"}
     
+    data = await request.json()
+    
     project_id = processor.create_project({
-        "name": request.get("name"),
-        "description": request.get("description", ""),
-        "client_name": request.get("client_name"),
-        "total_budget": request.get("total_budget"),
-        "deadline": request.get("deadline"),
-        "notes": request.get("notes", ""),
+        "name": data.get("name"),
+        "description": data.get("description", ""),
+        "client_name": data.get("client_name"),
+        "total_budget": data.get("total_budget"),
+        "deadline": data.get("deadline"),
+        "notes": data.get("notes", ""),
         "status": "in_progress",
         "created_by": user["id"]
     })
@@ -219,18 +224,18 @@ async def create_project(request: dict, session_id: str = None):
     if not project_id:
         return {"error": "Failed to create project"}
     
-    calculator.initialize_fractions_for_project(project_id, request.get("total_budget"))
+    calculator.initialize_fractions_for_project(project_id, data.get("total_budget"))
     
     activity_log.log_action(
         user["id"], "CREATED_PROJECT", project_id,
-        f"name={request.get('name')} budget={request.get('total_budget')}"
+        f"name={data.get('name')} budget={data.get('total_budget')}"
     )
     
     return {"success": True, "project_id": project_id}
 
 
 @app.patch("/api/projects/{project_id}")
-async def update_project(project_id: str, request: dict, session_id: str = None):
+async def update_project(project_id: str, request: Request, session_id: str = None):
     """Обновить проект"""
     if not session_id:
         return {"error": "Not authenticated"}
@@ -239,13 +244,15 @@ async def update_project(project_id: str, request: dict, session_id: str = None)
     if not user or user["role"] not in ["manager", "admin"]:
         return {"error": "Access denied"}
     
+    data = await request.json()
+    
     old_project = processor.get_project_by_id(project_id)
-    success = processor.update_project(project_id, request)
+    success = processor.update_project(project_id, data)
     
     if not success:
         return {"error": "Failed to update project"}
     
-    changes = [f"{k}={old_project.get(k)}->{v}" for k, v in request.items()]
+    changes = [f"{k}={old_project.get(k)}->{v}" for k, v in data.items()]
     activity_log.log_action(user["id"], "UPDATED_PROJECT", project_id, " ".join(changes))
     
     return {"success": True}
@@ -272,7 +279,7 @@ async def get_tasks(project_id: str = None, session_id: str = None):
 
 
 @app.post("/api/tasks")
-async def create_task(request: dict, session_id: str = None):
+async def create_task(request: Request, session_id: str = None):
     """Создать задачу"""
     if not session_id:
         return {"error": "Not authenticated"}
@@ -281,18 +288,20 @@ async def create_task(request: dict, session_id: str = None):
     if not user or user["role"] not in ["lead_developer", "admin"]:
         return {"error": "Access denied"}
     
-    project_id = request.get("project_id")
+    data = await request.json()
+    
+    project_id = data.get("project_id")
     is_valid, tasks_sum, pool = calculator.validate_tasks_sum(project_id)
     
-    new_cost = request.get("cost", 0)
+    new_cost = data.get("cost", 0)
     if tasks_sum + new_cost > pool:
         return {"error": f"Превышена сумма задач. Доступно: {pool - tasks_sum}₽"}
     
     task_id = processor.create_task({
         "project_id": project_id,
-        "title": request.get("title"),
-        "cost": request.get("cost"),
-        "assignee_id": request.get("assignee_id"),
+        "title": data.get("title"),
+        "cost": data.get("cost"),
+        "assignee_id": data.get("assignee_id"),
         "created_by": user["id"]
     })
     
@@ -303,14 +312,14 @@ async def create_task(request: dict, session_id: str = None):
     
     activity_log.log_action(
         user["id"], "CREATED_TASK", task_id,
-        f"project={project_id} title={request.get('title')} cost={request.get('cost')}"
+        f"project={project_id} title={data.get('title')} cost={data.get('cost')}"
     )
     
     return {"success": True, "task_id": task_id}
 
 
 @app.patch("/api/tasks/{task_id}")
-async def update_task(task_id: str, request: dict, session_id: str = None):
+async def update_task(task_id: str, request: Request, session_id: str = None):
     """Обновить задачу"""
     if not session_id:
         return {"error": "Not authenticated"}
@@ -319,24 +328,24 @@ async def update_task(task_id: str, request: dict, session_id: str = None):
     if not user:
         return {"error": "Invalid session"}
     
-    # Проверяем права: lead_developer, admin, или исполнитель (только свои задачи)
+    data = await request.json()
+    
     old_task = processor.get_task_by_id(task_id)
     if not old_task:
         return {"error": "Task not found"}
     
-    # Если пользователь не lead_developer и не admin, он может редактировать только свои задачи
     if user["role"] not in ["lead_developer", "admin"]:
         if old_task["assignee_id"] != user["id"]:
             return {"error": "Access denied"}
     
-    success = processor.update_task(task_id, request)
+    success = processor.update_task(task_id, data)
     if not success:
         return {"error": "Failed to update task"}
     
-    if "cost" in request or "assignee_id" in request:
+    if "cost" in data or "assignee_id" in data:
         calculator.update_developer_shares(old_task["project_id"])
     
-    changes = [f"{k}={old_task.get(k)}->{v}" for k, v in request.items()]
+    changes = [f"{k}={old_task.get(k)}->{v}" for k, v in data.items()]
     activity_log.log_action(user["id"], "UPDATED_TASK", task_id, " ".join(changes))
     
     return {"success": True}
@@ -422,7 +431,7 @@ async def get_finances(session_id: str = None):
 
 
 @app.post("/api/finances/client-payment")
-async def register_client_payment(request: dict, session_id: str = None):
+async def register_client_payment(request: Request, session_id: str = None):
     """Поступление от клиента"""
     if not session_id:
         return {"error": "Not authenticated"}
@@ -431,23 +440,25 @@ async def register_client_payment(request: dict, session_id: str = None):
     if not user or user["role"] not in ["manager", "admin"]:
         return {"error": "Access denied"}
     
+    data = await request.json()
+    
     success = calculator.register_client_payment(
-        request.get("project_id"), request.get("amount")
+        data.get("project_id"), data.get("amount")
     )
     
     if not success:
         return {"error": "Failed to register payment"}
     
     activity_log.log_action(
-        user["id"], "CLIENT_PAYMENT", request.get("project_id"),
-        f"amount={request.get('amount')}"
+        user["id"], "CLIENT_PAYMENT", data.get("project_id"),
+        f"amount={data.get('amount')}"
     )
     
     return {"success": True}
 
 
 @app.post("/api/finances/payout")
-async def register_payout(request: dict, session_id: str = None):
+async def register_payout(request: Request, session_id: str = None):
     """Выплата разработчику"""
     if not session_id:
         return {"error": "Not authenticated"}
@@ -456,16 +467,18 @@ async def register_payout(request: dict, session_id: str = None):
     if not user or user["role"] not in ["manager", "admin"]:
         return {"error": "Access denied"}
     
+    data = await request.json()
+    
     success = calculator.register_payout_to_developer(
-        request.get("project_id"), request.get("user_id"), request.get("amount")
+        data.get("project_id"), data.get("user_id"), data.get("amount")
     )
     
     if not success:
         return {"error": "Failed to register payout"}
     
     activity_log.log_action(
-        user["id"], "PAYOUT", request.get("project_id"),
-        f"user={request.get('user_id')} amount={request.get('amount')}"
+        user["id"], "PAYOUT", data.get("project_id"),
+        f"user={data.get('user_id')} amount={data.get('amount')}"
     )
     
     return {"success": True}
@@ -487,7 +500,7 @@ async def get_settings(session_id: str = None):
 
 
 @app.patch("/api/settings")
-async def update_settings(request: dict, session_id: str = None):
+async def update_settings(request: Request, session_id: str = None):
     """Обновить настройки"""
     if not session_id:
         return {"error": "Not authenticated"}
@@ -496,16 +509,14 @@ async def update_settings(request: dict, session_id: str = None):
     if not user:
         return {"error": "Invalid session"}
     
-    # Получаем старые настройки
-    old_settings = processor.get_settings(user["id"])
+    data = await request.json()
     
-    # Обновляем настройки
-    success = processor.update_settings(user["id"], request)
+    old_settings = processor.get_settings(user["id"])
+    success = processor.update_settings(user["id"], data)
     
     if success:
-        # Логируем изменения
         changes = []
-        for key, value in request.items():
+        for key, value in data.items():
             old_value = old_settings.get(key)
             if old_value != value:
                 changes.append(f"{key}={old_value}->{value}")
@@ -539,7 +550,7 @@ async def get_requisites(session_id: str = None):
 
 
 @app.patch("/api/requisites")
-async def update_requisites(request: dict, session_id: str = None):
+async def update_requisites(request: Request, session_id: str = None):
     """Обновить реквизиты"""
     if not session_id:
         return {"error": "Not authenticated"}
@@ -548,42 +559,40 @@ async def update_requisites(request: dict, session_id: str = None):
     if not user:
         return {"error": "Invalid session"}
     
-    # Проверяем, это реквизиты общака
-    is_obshak = request.get("is_obshak", False)
+    data = await request.json()
+    
+    is_obshak = data.get("is_obshak", False)
     
     if is_obshak:
-        # Только админ может редактировать реквизиты общака
         if user["role"] != "admin":
             return {"error": "Access denied"}
         
-        # Сохраняем реквизиты общака
         old_requisites = processor.get_requisites("obshak")
         success = processor.update_requisites("obshak", {
-            "value": request.get("requisite", ""),
-            "description": request.get("description", "")
+            "value": data.get("requisite", ""),
+            "description": data.get("description", "")
         })
         
         if success:
             activity_log.log_action(
                 user["id"], "UPDATED_REQUISITES", "obshak",
-                f"Общак: value={request.get('requisite')}"
+                f"Общак: value={data.get('requisite')}"
             )
         
         return {"success": success}
     else:
-        # Обычные реквизиты пользователя
         old_requisites = processor.get_requisites(user["id"])
         success = processor.update_requisites(user["id"], {
-            "value": request.get("requisite", ""),
-            "description": request.get("description", "")
+            "value": data.get("requisite", ""),
+            "description": data.get("description", "")
         })
         
         if success:
             changes = []
-            if old_requisites.get("value") != request.get("requisite"):
-                changes.append(f"value={old_requisites.get('value')}->{request.get('requisite')}")
-            if old_requisites.get("description") != request.get("description"):
-                changes.append(f"description={old_requisites.get('description')}->{request.get('description')}")
+            if old_requisites.get("value") != data.get("requisite"):
+                changes.append(f"value={old_requisites.get('value')}->{data.get('requisite')}")
+            if old_requisites.get("description") != data.get("description"):
+                changes.append(f"description={old_requisites.get('description')}->{data.get('description')}")
             
             if changes:
                 activity_log.log_action(
@@ -608,6 +617,10 @@ async def get_logs(filter: str = 'all', session_id: str = None):
     
     if user["role"] != "admin":
         return {"error": "Access denied"}
+    
+    # Проверяем что файл существует
+    if not os.path.exists('/data/activity.log'):
+        return {"logs": []}
     
     logs = activity_log.get_logs(1000)
     
@@ -883,7 +896,7 @@ async def cmd_get_finances(message: types.Message):
     if not await check_admin(message):
         return
     
-    '/data/finances.json'
+    file_path = '/data/finances.json'  # ← ИСПРАВЛЕНО
     await send_file(message, file_path, "finances.json")
 
 

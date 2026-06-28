@@ -21,7 +21,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 SESSION_LIFETIME = 24 * 60 * 60
 
 # Путь к файлу сессий
-SESSIONS_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'sessions.json')
+SESSIONS_FILE = '/data/sessions.json'
 
 
 # ============= ПРОВЕРКА TELEGRAM INIT DATA =============

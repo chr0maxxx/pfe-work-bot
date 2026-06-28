@@ -230,8 +230,11 @@ def get_fractions(project_id: Optional[str] = None) -> List[Dict]:
     data = read_json('fractions.json')
     fractions = data.get('fractions', [])
     
+    # Фильтруем только валидные объекты (словари)
+    fractions = [f for f in fractions if isinstance(f, dict)]
+    
     if project_id:
-        fractions = [f for f in fractions if f['project_id'] == project_id]
+        fractions = [f for f in fractions if f.get('project_id') == project_id]
     
     return fractions
 

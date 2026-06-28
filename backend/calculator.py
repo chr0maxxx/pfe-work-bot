@@ -1,5 +1,6 @@
 import processor
 import activity_log
+import system_log
 from typing import Dict, List, Tuple, Optional
 
 
@@ -69,17 +70,25 @@ def validate_tasks_sum(project_id: str) -> Tuple[bool, float, float]:
     Проверить, что сумма задач не превышает пул разработчиков
     Возвращает: (валидно, сумма_задач, доступный_пул)
     """
-    fractions = processor.get_fractions(project_id=project_id)
-    if not fractions:
+    try:
+        fractions = processor.get_fractions(project_id=project_id)
+        if not fractions:
+            system_log.warning(f"Fractions not found for project {project_id}")
+            return False, 0, 0
+        
+        fraction = fractions[0]
+        developers_pool = fraction.get("developers_pool", 0)
+        
+        tasks = processor.get_tasks(project_id=project_id)
+        tasks_sum = sum(task.get("cost", 0) for task in tasks)
+        
+        is_valid = tasks_sum <= developers_pool
+        
+        return is_valid, tasks_sum, developers_pool
+    
+    except Exception as e:
+        system_log.error(f"validate_tasks_sum error: {e}")
         return False, 0, 0
-    
-    developers_pool = fractions[0]["developers_pool"]
-    tasks = processor.get_tasks(project_id=project_id)
-    tasks_sum = sum(task["cost"] for task in tasks)
-    
-    is_valid = tasks_sum <= developers_pool
-    
-    return is_valid, tasks_sum, developers_pool
 
 
 def get_remaining_pool(project_id: str) -> float:

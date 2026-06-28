@@ -208,9 +208,12 @@ async function renderScreen() {
       html = renderHomeScreen();
       break;
     case "projects":
-      html = state.selectedProject
-        ? await renderProjectDetail()
-        : renderProjects();
+      if (state.selectedProject) {
+        html = await renderProjectDetail();
+      } else {
+        html = renderProjects();
+      }
+      setTimeout(attachProjectHandlers, 0);
       break;
     case "tasks":
       await loadTasksScreen(); // ← ждём загрузку
